@@ -1,0 +1,20 @@
+{
+  "name": "socketmq",
+  "version": "0.1.0",
+  "description": "Lightweight stream-oriented messaging library for node.",
+  "main": "index.js",
+  "directories": {
+    "example": "example"
+  },
+  "dependencies": {
+    "amp": "0.3.1"
+  },
+  "devDependencies": {
+    "humanize-number": "0.0.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "lsm",
+  "license": "MIT"
+}
