@@ -1,6 +1,6 @@
 var Url = require('url');
 var net = require('./net')
-var Socket = require('./socket')
+var Socket = exports.Socket = require('./socket')
 
 exports.bind = function(url, options) {
   return createSocketMQ('bind', url, options)
