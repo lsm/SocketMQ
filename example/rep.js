@@ -1,9 +1,16 @@
 var socketmq = require('../')
 
-var smq = socketmq.bind('tcp://127.0.0.1:5000')
+var smq = socketmq.bind('tcp://127.0.0.1:6363')
+
+smq.on('bind', function() {
+  console.log('rep bound')
+})
 
 smq.on('connect', function(stream) {
-  console.log('new stream connected to server')
+  console.log('new connection')
+  smq.req('request from server', 'hello', function(msg) {
+    console.log(msg)
+  })
 })
 
 smq.rep('hello', function(msg, reply) {

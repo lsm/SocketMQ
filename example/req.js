@@ -1,9 +1,9 @@
 var socketmq = require('../')
 
-var smq = socketmq.connect('tcp://127.0.0.1:5000')
+var smq = socketmq.connect('tcp://127.0.0.1:6363')
 
 smq.on('connect', function(stream) {
-  console.log('stream established with server')
+  console.log('req connected to server')
 })
 
 setInterval(function() {
@@ -11,3 +11,8 @@ setInterval(function() {
     console.log('replied msg:' + msg)
   })
 }, 1000)
+
+smq.rep('request from server', function(msg, reply) {
+  console.log('request from server', msg)
+  reply('response from client')
+})
