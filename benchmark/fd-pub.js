@@ -3,7 +3,7 @@ var net = require('net')
 var socketmq = require('../')
 
 var smq = new socketmq.Socket()
-var stream = net.Socket({
+var stream = new net.Socket({
   fd: 3,
   readable: true,
   writable: true
