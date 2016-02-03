@@ -3,6 +3,10 @@
 var socketmq = require('../')
 
 var smq = socketmq.bind('tcp://0.0.0.0:6363')
+
+// var msgpack = require('msgpack')
+// smq.setMsgEncoder(msgpack)
+
 smq.on('bind', function() {
   console.log('pub bound');
 })
