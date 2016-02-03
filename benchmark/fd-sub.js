@@ -1,6 +1,5 @@
 // pub/sub benchmark script credit: https://github.com/tj/axon/tree/master/benchmark
 var fs = require('fs');
-var duplexify = require('duplexify')
 var socketmq = require('../')
 humanize = require('humanize-number');
 
