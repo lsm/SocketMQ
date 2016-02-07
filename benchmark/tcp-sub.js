@@ -5,8 +5,7 @@ humanize = require('humanize-number');
 
 var smq = socketmq.connect('tcp://127.0.0.1:6363')
 
-// var msgpack = require('msgpack')
-// smq.setMsgEncoder(msgpack)
+// smq.setMsgEncoder(require('msgpack'))
 
 var n = 0;
 var ops = 5000;
