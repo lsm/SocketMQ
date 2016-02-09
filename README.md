@@ -17,14 +17,16 @@ smq.on('bind', function() {
   console.log('rep bound')
 })
 
+var event = 'hello' // or you can call it topic or channel.
+
 smq.on('connect', function(stream) {
   console.log('new connection')
-  smq.req('request from server', 'hello', function (msg) {
+  smq.req(event, 'request from server', function (msg) {
     console.log(msg)
   })
 })
 
-smq.rep('hello', function(msg, reply) {
+smq.rep(event, function(msg, reply) {
   console.log('requested msg:' + msg)
   reply('Hi ' + msg + ', world!')
 })
@@ -46,7 +48,7 @@ setInterval(function() {
   })
 }, 1000)
 
-smq.rep('request from server', function (msg, reply) {
+smq.rep('hello', function (msg, reply) {
   console.log('request from server', msg)
   reply('response from client')
 })
