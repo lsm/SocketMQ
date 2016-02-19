@@ -9,8 +9,16 @@ var childOpts = {
 }
 var child = child_process.spawn('node', [__dirname + '/fd-pub.js'], childOpts)
 var stdio = child.stdio[3]
-//
-var smq = new socketmq.Socket()
+
+var smq = socketmq()
+
+smq.on('disconnect', function() {
+  console.log('stream disconnected')
+})
+
+stdio.on('error', function(err) {
+  console.log('fd-sub error', err)
+})
 
 smq.on('connect', function() {
   console.log('stream connected')
@@ -71,10 +79,6 @@ smq.on('connect', function() {
   }
 
   process.on('SIGINT', done);
-})
-
-stdio.on('error', function(err) {
-  console.log('fd-sub error')
 })
 
 smq.addStream(stdio)

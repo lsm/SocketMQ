@@ -9,6 +9,14 @@ var stream = new net.Socket({
   writable: true
 })
 
+smq.on('disconnect', function() {
+  console.log('fd-pub: stream disconnected')
+})
+
+stream.on('error', function(err) {
+  console.log('fd-pub error', err)
+})
+
 smq.on('connect', function() {
   var perTick = 5;
   var str = Array(1024).join('a');
@@ -21,10 +29,6 @@ smq.on('connect', function() {
   }
 
   more();
-})
-
-stream.on('error', function(err) {
-  console.log('fd-pub error')
 })
 
 smq.addStream(stream)
