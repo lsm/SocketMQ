@@ -1,26 +1,19 @@
-var Url = require('url');
-var transport = require('./lib/transport')
-var Socket = exports.Socket = require('./lib/socket')
+var Socket = require('./lib/socket')
 
-exports.bind = function(url, options) {
-  return createSocketMQ('bind', url, options)
+var socketmq = module.exports = function() {
+  return new Socket()
 }
 
-exports.connect = function(url, options) {
-  return createSocketMQ('connect', url, options)
+socketmq.Socket = Socket
+
+socketmq.bind = function(uri, options) {
+  var smq = socketmq()
+  smq.bind(uri, options)
+  return smq
 }
 
-function createSocketMQ(type, url, options) {
-  var target = Url.parse(url)
-  var protocol = target.protocol.slice(0, -1)
-
-  if (!transport[protocol]) {
-    var err = 'Transport "' + protocol + '" is not supported. SocketMQ supports: ' + Object.keys(transport).join(', ')
-    throw new Error(err)
-  }
-
-  var socket = new Socket()
-  transport[protocol][type](target, socket, options)
-
-  return socket
+socketmq.connect = function(uri, options) {
+  var smq = socketmq()
+  smq.connect(uri, options)
+  return smq
 }
