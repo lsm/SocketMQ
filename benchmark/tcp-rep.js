@@ -4,6 +4,10 @@ var socketmq = require('../')
 
 var smq = socketmq.bind('tcp://127.0.0.1:6363')
 
+smq.on('error', function(err) {
+  console.log('socket error', err);
+})
+
 smq.on('bind', function() {
   console.log('tcp server bound')
 })
