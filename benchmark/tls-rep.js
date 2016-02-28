@@ -8,6 +8,10 @@ var smq = socketmq.bind('tls://localhost:6363', {
   ca: [fs.readFileSync('./certs/client-cert.pem')]
 })
 
+smq.on('error', function(err) {
+  console.log('socket error', err);
+})
+
 smq.on('bind', function() {
   console.log('tls server bound')
 })
