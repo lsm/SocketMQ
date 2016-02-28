@@ -19,7 +19,7 @@ stream.on('error', function(err) {
 
 smq.on('connect', function() {
   var perTick = 5;
-  var str = Array(1024).join('a');
+  var str = Buffer(Array(1024).join('a'));
   console.log('sending %d per tick', perTick);
   console.log('sending %d byte messages', Buffer.byteLength(str));
 
