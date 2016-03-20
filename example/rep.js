@@ -17,3 +17,8 @@ smq.rep('hello', function(msg, reply) {
   console.log('requested msg:' + msg)
   reply('Hi ' + msg + ', world!')
 })
+
+smq.rep('first message', function(topic, msg, reply) {
+  console.log('rep', topic, msg)
+  reply(null, 'got first message')
+})
