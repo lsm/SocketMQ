@@ -10,7 +10,10 @@
     "amp": "0.3.1"
   },
   "devDependencies": {
-    "humanize-number": "0.0.2"
+    "coveralls": "2.11.8",
+    "humanize-number": "0.0.2",
+    "istanbul": "0.4.2",
+    "tape": "4.5.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
