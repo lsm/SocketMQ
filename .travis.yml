@@ -1,0 +1,29 @@
+sudo: false
+
+language: node_js
+
+matrix:
+  fast_finish: true
+  include:
+    - node_js: "4"
+      env: TASK=istanbul
+    - node_js: "3"
+      env: TASK=unit
+    - node_js: "2"
+      env: TASK=unit
+    - node_js: "1"
+      env: TASK=unit
+    - node_js: "0.12"
+      env: TASK=unit
+    - node_js: "0.10"
+      env: TASK=unit
+
+cache:
+  directories:
+  - node_modules
+
+script:
+  - make ${TASK}
+
+after_script:
+  - 'if [ "${TASK}" == "istanbul" ]; then cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js; fi'
