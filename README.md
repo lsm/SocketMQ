@@ -1,5 +1,6 @@
 # SocketMQ
 
+[![Build Status](https://travis-ci.org/lsm/SocketMQ.svg?branch=master)](https://travis-ci.org/lsm/SocketMQ)
 [![Coverage Status](https://coveralls.io/repos/github/lsm/SocketMQ/badge.svg?branch=master)](https://coveralls.io/github/lsm/SocketMQ?branch=master)
 
 Lightweight stream oriented messaging library.
