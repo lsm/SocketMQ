@@ -1,6 +1,6 @@
 var test = require('tape')
 
-module.exports = function(t, smqServer, smqClient) {
+module.exports = function(name, t, smqServer, smqClient) {
   smqServer.on('connect', function(stream) {
     t.pass('server connect event')
     t.ok(stream.readable, 'stream is readable')
@@ -16,19 +16,32 @@ module.exports = function(t, smqServer, smqClient) {
 
   var msg1 = 'msg1'
   var msg2 = 'msg2'
+  var str = 'str'
+  var buffer = Buffer('buffer')
 
-  test('pub/sub', function(t) {
-    t.plan(2)
+  test(name + ': pub/sub', function(t) {
+    t.plan(5)
 
-    smqServer.sub('test sub', function(arg1, arg2) {
-      t.equal(arg1, msg1, 'pub arg1 match')
-      t.equal(arg2, msg2, 'pub arg2 match')
+    smqServer.sub('test string', function(str1) {
+      t.equal(str1, str, 'string match')
     })
 
-    smqClient.pub('test sub', msg1, msg2)
+    smqServer.sub('test buffer', function(buf1) {
+      t.ok(Buffer.isBuffer(buf1), 'get buffer')
+      t.equal(buf1.compare(buffer), 0, 'buffer match')
+    })
+
+    smqServer.sub('test multi arguments', function(arg1, arg2) {
+      t.equal(arg1, msg1, 'arg1 match')
+      t.equal(arg2, msg2, 'arg2 match')
+    })
+
+    smqClient.pub('test string', str)
+    smqClient.pub('test buffer', buffer)
+    smqClient.pub('test multi arguments', msg1, msg2)
   })
 
-  test('req/rep', function(t) {
+  test(name + ': req/rep', function(t) {
     t.plan(5)
 
     smqClient.rep('test rep', function(arg1, arg2, reply) {
@@ -41,13 +54,6 @@ module.exports = function(t, smqServer, smqClient) {
       t.equal(err, null, 'rep err match')
       t.equal(arg1, msg1, 'rep arg1 match')
       t.equal(arg2, msg2, 'rep arg1 match')
-      finish()
     })
-  })
-}
-
-function finish() {
-  setImmediate(function() {
-    process.exit(0)
   })
 }

@@ -1,10 +1,11 @@
 
 
 unit:
-	node test/*.test.js
+	node test/index.js
 
 istanbul:
-	./node_modules/.bin/istanbul cover test/*.test.js
+	./node_modules/.bin/istanbul cover test/index.js
+
 watch:
 	./node_modules/.bin/nodemon ./node_modules/.bin/istanbul cover test/index.js
 
