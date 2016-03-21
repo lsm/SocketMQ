@@ -1,4 +1,7 @@
 # SocketMQ
+
+[![Coverage Status](https://coveralls.io/repos/github/lsm/SocketMQ/badge.svg?branch=master)](https://coveralls.io/github/lsm/SocketMQ?branch=master)
+
 Lightweight stream oriented messaging library.
 
 ## Messaging Types
