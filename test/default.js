@@ -28,7 +28,7 @@ module.exports = function(name, t, smqServer, smqClient) {
 
     smqServer.sub('test buffer', function(buf1) {
       t.ok(Buffer.isBuffer(buf1), 'get buffer')
-      t.equal(buf1.compare(buffer), 0, 'buffer match')
+      t.equal(buf1.toString(), buffer.toString(), 'buffer match')
     })
 
     smqServer.sub('test multi arguments', function(arg1, arg2) {
