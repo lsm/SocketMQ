@@ -89,3 +89,35 @@ smq.sub('pub.test', function(data) {
   console.log('got pub message: ' + data)
 })
 ```
+
+### Using tags
+
+SocketMQ can tag the streams and send messages to streams with specific tags.
+
+
+```javascript
+
+var socketmq = require('socketmq')
+
+var tcpUri = 'tcp://127.0.0.1:6363'
+var smq = socketmq.connect(tcpUri, function(stream) {
+  // Tag the stream.
+  smq.tag(stream, 'tcp')
+})
+
+var tlsUri = 'tls://127.0.0.1:46363'
+smq.connect(tlsUri, function(stream) {
+  smq.tag(stream, 'tls')
+})
+
+// Then send messages using `reqTag` of `pubTag`
+
+// `req` message only to server with `tcp` tag
+smq.reqTag('tcp', 'hello', 'message', function(){
+  // ...
+})
+
+// `pub` message only to server with `tls` tag
+smq.pubTag('tls', 'hello', 'message')
+
+```
