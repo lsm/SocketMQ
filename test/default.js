@@ -32,7 +32,9 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
 
   smqClient1.on('connect', onClient1Connect)
 
+  var clientStream2
   smqClient2.on('connect', function(stream) {
+    clientStream2 = stream
     T.pass('client2 connect event')
     T.ok(stream.readable, 'stream is readable')
     T.ok(stream.writable, 'stream is writable')
@@ -162,6 +164,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
     smqClient1.on('error', function(error) {
       t.equal(error, smqClient1.ERR_UNWRITABLE, 'emit unwritable error')
     })
+
     smqClient1.removeListener('connect', onClient1Connect)
     smqClient1.addStream(clientStream1)
     smqClient1.pub('event', 'can not be sent')
@@ -180,6 +183,20 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
   })
 
   if ('tcp' === name) {
+    // @todo tls fire duplicated `disconnect` event
+
+    test(name + ': streamError', function(t) {
+      t.plan(3)
+      smqClient2.on('disconnect', function(stream) {
+        t.equal(stream, clientStream2, 'disconnect stream match')
+      })
+      smqClient2.on('streamError', function(err, stream) {
+        t.equal(err, 'some error', 'streamError error match')
+        t.equal(stream, clientStream2, 'streamError stream match')
+      })
+      clientStream2.emit('error', 'some error')
+    })
+
     test(name + ': pending messages', function(t) {
       t.plan(3)
 
