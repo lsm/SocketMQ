@@ -8,7 +8,6 @@ var certPath = path.join(__dirname, '../benchmark/certs')
 
 module.exports = function() {
   test('tls: connect event', function(t) {
-    t.plan(6)
 
     var smqServer = socketmq.bind('tls://localhost:46363', {
       key: fs.readFileSync(certPath + '/server-key.pem'),
@@ -16,12 +15,18 @@ module.exports = function() {
       ca: [fs.readFileSync(certPath + '/client-cert.pem')]
     })
 
-    var smqClient = socketmq.connect('tls://localhost:46363', {
+    var smqClient1 = socketmq.connect('tls://localhost:46363', {
       key: fs.readFileSync(certPath + '/client-key.pem'),
       cert: fs.readFileSync(certPath + '/client-cert.pem'),
       ca: [fs.readFileSync(certPath + '/server-cert.pem')]
     })
 
-    testDefault('tls', t, smqServer, smqClient)
+    var smqClient2 = socketmq.connect('tls://localhost:46363', {
+      key: fs.readFileSync(certPath + '/client-key.pem'),
+      cert: fs.readFileSync(certPath + '/client-cert.pem'),
+      ca: [fs.readFileSync(certPath + '/server-cert.pem')]
+    })
+
+    testDefault('tls', t, smqServer, smqClient1, smqClient2)
   })
 }
