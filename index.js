@@ -6,14 +6,14 @@ var socketmq = module.exports = function() {
 
 socketmq.Socket = Socket
 
-socketmq.bind = function(uri, options) {
+socketmq.bind = function(uri, options, callback) {
   var smq = socketmq()
-  smq.bind(uri, options)
+  smq.bind(uri, options, callback)
   return smq
 }
 
-socketmq.connect = function(uri, options) {
+socketmq.connect = function(uri, options, callback) {
   var smq = socketmq()
-  smq.connect(uri, options)
+  smq.connect(uri, options, callback)
   return smq
 }
