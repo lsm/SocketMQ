@@ -19,6 +19,8 @@ module.exports = function() {
       key: fs.readFileSync(certPath + '/client-key.pem'),
       cert: fs.readFileSync(certPath + '/client-cert.pem'),
       ca: [fs.readFileSync(certPath + '/server-cert.pem')]
+    }, function() {
+      t.notOk(smqClient1.hasTag('tls://localhost:46363'), 'default tag has not been added')
     })
 
     var smqClient2 = socketmq.connect('tls://localhost:46363', {

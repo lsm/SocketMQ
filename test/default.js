@@ -1,12 +1,12 @@
 var test = require('tape')
 
 module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
-  T.plan(12)
+  T.plan(15)
 
   var serverStream1
   var serverStream2
 
-  smqServer.on('connect', function(stream) {
+  function onServerConnect(stream) {
     if (serverStream1)
       serverStream2 = stream
     else
@@ -14,20 +14,32 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
     T.pass('server connect event')
     T.ok(stream.readable, 'stream is readable')
     T.ok(stream.writable, 'stream is writable')
-  })
+  }
+
+  smqServer.on('connect', onServerConnect)
 
   var clientStream1
-  smqClient1.on('connect', function(stream) {
+  function onClient1Connect(stream) {
     clientStream1 = stream
-    T.pass('client connect event')
+    T.pass('client1 connect event')
     T.ok(stream.readable, 'stream is readable')
     T.ok(stream.writable, 'stream is writable')
-  })
+    if ('tcp' === name)
+      T.ok(smqClient1.hasTag('tcp://127.0.0.1:6363'), 'client1 has default tag')
+    if ('tls' === name)
+      T.ok(smqClient1.hasTag('tls://localhost:46363'), 'client1 has default tag')
+  }
+
+  smqClient1.on('connect', onClient1Connect)
 
   smqClient2.on('connect', function(stream) {
-    T.pass('client connect event')
+    T.pass('client2 connect event')
     T.ok(stream.readable, 'stream is readable')
     T.ok(stream.writable, 'stream is writable')
+    if ('tcp' === name)
+      T.ok(smqClient2.hasTag('tcp://127.0.0.1:6363'), 'client2 has default tag')
+    if ('tls' === name)
+      T.ok(smqClient2.hasTag('tls://localhost:46363'), 'client2 has default tag')
   })
 
   var msg1 = 'msg1'
@@ -130,9 +142,65 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
     })
 
     smqClient1.sub('only for client2', function(msg, arg2) {
-      t.notOk(true, 'get msg for client2')
+      t.notOk(true, 'client1 should not get messages for client2')
     })
 
     smqServer.pubTag('client2', 'only for client2', 'hello client2', msg2)
   })
+
+  test(name + ': disconnect', function(t) {
+    t.plan(1)
+    smqClient1.on('disconnect', function(stream) {
+      t.equal(stream, clientStream1)
+    })
+    clientStream1.end()
+  })
+
+  test(name + ': error', function(t) {
+    t.plan(3)
+
+    smqClient1.on('error', function(error) {
+      t.equal(error, smqClient1.ERR_UNWRITABLE, 'emit unwritable error')
+    })
+    smqClient1.removeListener('connect', onClient1Connect)
+    smqClient1.addStream(clientStream1)
+    smqClient1.pub('event', 'can not be sent')
+    smqClient1.removeAllListeners('disconnect')
+    smqClient1.removeStream(clientStream1)
+
+    smqClient2.on('error', function(error) {
+      t.equal(error, smqClient2.ERR_NO_TAGGED_STREAM, 'client emit no stream for tag error')
+    })
+    smqClient2.reqTag('no such tag', 'event', 'message', function() {})
+
+    smqServer.on('error', function(error) {
+      t.equal(error, smqClient2.ERR_NO_TAGGED_STREAM, 'server emit no stream for tag error')
+    })
+    smqServer.pubTag('no such tag', 'event', 'message')
+  })
+
+  if ('tcp' === name) {
+    test(name + ': pending messages', function(t) {
+      t.plan(3)
+
+      var reqEvent = name + ' pending req'
+      smqClient1.req(reqEvent, 'pending req msg', function(data) {
+        t.equal(data, 'pending req reply', 'pending req reply')
+      })
+
+      smqServer.rep(reqEvent, function(msg, reply) {
+        t.equal(msg, 'pending req msg', 'pending req msg')
+        reply('pending req reply')
+      })
+
+      var pubEvent = name + ' pending pub'
+      smqClient1.pub(pubEvent, 'pending pub msg')
+      smqServer.sub(pubEvent, function(msg) {
+        t.equal(msg, 'pending pub msg', 'pending pub msg')
+      })
+
+      smqServer.removeListener('connect', onServerConnect)
+      smqClient1.connect('tcp://127.0.0.1:6363')
+    })
+  }
 }
