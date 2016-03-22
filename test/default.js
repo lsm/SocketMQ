@@ -182,21 +182,19 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
     smqServer.pubTag('no such tag', 'event', 'message')
   })
 
-  if ('tcp' === name) {
-    // @todo tls fire duplicated `disconnect` event
-
-    test(name + ': streamError', function(t) {
-      t.plan(3)
-      smqClient2.on('disconnect', function(stream) {
-        t.equal(stream, clientStream2, 'disconnect stream match')
-      })
-      smqClient2.on('streamError', function(err, stream) {
-        t.equal(err, 'some error', 'streamError error match')
-        t.equal(stream, clientStream2, 'streamError stream match')
-      })
-      clientStream2.emit('error', 'some error')
+  test(name + ': streamError', function(t) {
+    t.plan(4)
+    smqClient2.on('disconnect', function(stream) {
+      t.equal(stream, clientStream2, 'disconnect stream match')
     })
+    smqClient2.on('streamError', function(err, stream) {
+      t.equal(err, 'some error', 'streamError error match')
+      t.equal(stream, clientStream2, 'streamError stream match')
+    })
+    clientStream2.emit('error', 'some error')
+  })
 
+  if ('tcp' === name) {
     test(name + ': pending messages', function(t) {
       t.plan(3)
 
