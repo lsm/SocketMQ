@@ -15,8 +15,6 @@ matrix:
       env: TASK=unit
     - node_js: "0.12"
       env: TASK=unit
-    - node_js: "0.10"
-      env: TASK=unit
 
 cache:
   directories:
