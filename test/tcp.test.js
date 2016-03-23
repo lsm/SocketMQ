@@ -9,7 +9,7 @@ module.exports = function() {
 
     var smqServer = socketmq.bind(endpoint)
     var smqClient1 = socketmq.connect(endpoint, function() {
-      t.notOk(smqClient1.hasTag(endpoint), 'default tag has not been added')
+      t.ok(smqClient1.hasTag(endpoint), 'default tag has been added')
       t.ok(smqClient1.hasConnection(endpoint), 'endpoint connected')
     })
     var smqClient2 = socketmq.connect(endpoint)

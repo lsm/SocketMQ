@@ -23,7 +23,7 @@ module.exports = function() {
     })
 
     var smqClient1 = socketmq.connect(endpoint, clientOptions, function() {
-      t.notOk(smqClient1.hasTag(endpoint), 'default tag has not been added')
+      t.ok(smqClient1.hasTag(endpoint), 'default tag has been added')
       t.ok(smqClient1.hasConnection(endpoint), 'endpoint connected')
     })
 
