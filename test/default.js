@@ -1,7 +1,7 @@
 var test = require('tape')
 
-module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
-  T.plan(15)
+module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, options) {
+  T.plan(21)
 
   var serverStream1
   var serverStream2
@@ -24,10 +24,10 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
     T.pass('client1 connect event')
     T.ok(stream.readable, 'stream is readable')
     T.ok(stream.writable, 'stream is writable')
-    if ('tcp' === name)
-      T.ok(smqClient1.hasTag('tcp://127.0.0.1:6363'), 'client1 has default tag')
-    if ('tls' === name)
-      T.ok(smqClient1.hasTag('tls://localhost:46363'), 'client1 has default tag')
+    T.ok(smqClient1.hasTag(endpoint), 'client1 has default tag')
+    T.equal(smqClient1.tag(endpoint, 'tag by uri'), 1, 'tag by endpoint uri')
+    T.equal(smqClient1.tag(endpoint, 'tag by uri'), 0, 'tag existing tag again')
+    T.ok(smqClient1.hasTag('tag by uri'), 'client1 has tag tagged by endpoint uri')
   }
 
   smqClient1.on('connect', onClient1Connect)
@@ -38,10 +38,9 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
     T.pass('client2 connect event')
     T.ok(stream.readable, 'stream is readable')
     T.ok(stream.writable, 'stream is writable')
-    if ('tcp' === name)
-      T.ok(smqClient2.hasTag('tcp://127.0.0.1:6363'), 'client2 has default tag')
-    if ('tls' === name)
-      T.ok(smqClient2.hasTag('tls://localhost:46363'), 'client2 has default tag')
+    T.ok(smqClient2.hasTag(endpoint), 'client2 has default tag')
+    T.equal(smqClient1.tag(endpoint + '123456', 'tag by non-existent uri'), false, 'tag by non-existent uri')
+    T.notOk(smqClient1.hasTag('tag by non-existent uri'), 'tag by non-existent uri')
   })
 
   var msg1 = 'msg1'
@@ -194,28 +193,26 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2) {
     clientStream2.emit('error', 'some error')
   })
 
-  if ('tcp' === name) {
-    test(name + ': pending messages', function(t) {
-      t.plan(3)
+  test(name + ': pending messages', function(t) {
+    t.plan(3)
 
-      var reqEvent = name + ' pending req'
-      smqClient1.req(reqEvent, 'pending req msg', function(data) {
-        t.equal(data, 'pending req reply', 'pending req reply')
-      })
-
-      smqServer.rep(reqEvent, function(msg, reply) {
-        t.equal(msg, 'pending req msg', 'pending req msg')
-        reply('pending req reply')
-      })
-
-      var pubEvent = name + ' pending pub'
-      smqClient1.pub(pubEvent, 'pending pub msg')
-      smqServer.sub(pubEvent, function(msg) {
-        t.equal(msg, 'pending pub msg', 'pending pub msg')
-      })
-
-      smqServer.removeListener('connect', onServerConnect)
-      smqClient1.connect('tcp://127.0.0.1:6363')
+    var reqEvent = name + ' pending req'
+    smqClient1.req(reqEvent, 'pending req msg', function(data) {
+      t.equal(data, 'pending req reply', 'pending req reply')
     })
-  }
+
+    smqServer.rep(reqEvent, function(msg, reply) {
+      t.equal(msg, 'pending req msg', 'pending req msg')
+      reply('pending req reply')
+    })
+
+    var pubEvent = name + ' pending pub'
+    smqClient1.pub(pubEvent, 'pending pub msg')
+    smqServer.sub(pubEvent, function(msg) {
+      t.equal(msg, 'pending pub msg', 'pending pub msg')
+    })
+
+    smqServer.removeListener('connect', onServerConnect)
+    smqClient1.connect(endpoint, options)
+  })
 }
