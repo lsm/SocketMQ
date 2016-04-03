@@ -105,7 +105,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   test(name + ': tag clients', function(t) {
     t.notEqual(serverStream1.remotePort, serverStream2.remotePort, 'get 2 clients')
 
-    if (serverStream1.remotePort === clientStream1.localPort) {
+    if (serverStream1.remotePort === clientStream1.localPort || !clientStream1.localPort) {
       smqServer.tag(serverStream1, 'client1')
       smqServer.tag(serverStream2, 'client2')
     } else {
@@ -152,7 +152,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   test(name + ': disconnect', function(t) {
     t.plan(1)
     smqClient1.on('disconnect', function(stream) {
-      t.equal(stream, clientStream1)
+      t.equal(stream, clientStream1, 'clientStream1 disconnected')
     })
     clientStream1.end()
   })
