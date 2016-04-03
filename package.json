@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "coveralls": "2.11.8",
+    "engine.io": "1.6.8",
     "humanize-number": "0.0.2",
     "istanbul": "0.4.2",
     "nodemon": "1.9.1",
