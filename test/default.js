@@ -45,11 +45,16 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
 
   var msg1 = 'msg1'
   var msg2 = 'msg2'
+  var obj = {
+    key: 'value'
+  }
+  var arr = ['a', 1, obj]
+  var num = 6
   var str = 'str'
   var buffer = Buffer('buffer')
 
   test(name + ': pub/sub', function(t) {
-    t.plan(11)
+    t.plan(18)
 
     smqServer.sub('test string', function(str1) {
       t.equal(str1, str, 'string match')
@@ -60,6 +65,22 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
       t.equal(buf1.toString(), buffer.toString(), 'buffer match')
     })
 
+    smqServer.sub('test object', function(obj1) {
+      t.ok(obj1 && 'object' === typeof obj1, 'get object')
+      t.equal(obj1.key, obj.key, 'object match')
+    })
+
+    smqServer.sub('test array', function(arr1) {
+      t.ok(arr1 && Array.isArray(arr1), 'get array')
+      t.equal(arr1[0], 'a', 'array[0] match')
+      t.equal(arr1[1], 1, 'array[1] match')
+      t.equal(arr1[2].key, obj.key, 'array[2] match')
+    })
+
+    smqServer.sub('test number', function(num1) {
+      t.equal(num1, 6, 'number match')
+    })
+
     smqServer.sub('test multi arguments', function(arg1, arg2) {
       t.equal(arg1, msg1, 'arg1 match')
       t.equal(arg2, msg2, 'arg2 match')
@@ -67,6 +88,9 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
 
     smqClient1.pub('test string', str)
     smqClient1.pub('test buffer', buffer)
+    smqClient1.pub('test object', obj)
+    smqClient1.pub('test array', arr)
+    smqClient1.pub('test number', num)
     smqClient1.pub('test multi arguments', msg1, msg2)
 
     // Pub to multiple clients
@@ -87,7 +111,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   })
 
   test(name + ': req/rep', function(t) {
-    t.plan(5)
+    t.plan(7)
 
     smqClient1.rep('test rep', function(arg1, arg2, reply) {
       t.equal(arg1, msg1, 'req arg1 match')
@@ -99,6 +123,14 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
       t.equal(err, null, 'rep err match')
       t.equal(arg1, msg1, 'rep arg1 match')
       t.equal(arg2, msg2, 'rep arg1 match')
+    })
+
+    smqServer.rep('test reply object', function(arg1, reply) {
+      t.equal(arg1.key, obj.key)
+      reply(obj)
+    })
+    smqClient1.req('test reply object', obj, function(obj1) {
+      t.equal(obj1.key, obj.key)
     })
   })
 
