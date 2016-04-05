@@ -76,10 +76,8 @@ module.exports = function() {
       reply(reMsg)
     })
 
-    setTimeout(function() {
-      tcpClient.req(event, msg, function(arg1) {
-        t.equal(arg1, reMsg, 'tcp rep match')
-      })
-    }, 100)
+    tcpClient.req(event, msg, function(arg1) {
+      t.equal(arg1, reMsg, 'tcp rep match')
+    })
   })
 }
