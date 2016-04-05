@@ -13,4 +13,5 @@ watch:
 	./node_modules/.bin/nodemon test/index.js
 
 coveralls: istanbul
+	sleep 10
 	cat coverage/lcov.info | ./node_modules/.bin/coveralls
