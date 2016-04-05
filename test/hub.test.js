@@ -64,4 +64,22 @@ module.exports = function() {
 
     tlsClient.pub('pub sub', msg)
   })
+
+  test('hub: req/rep', function(t) {
+    t.plan(2)
+    var msg = 'hub request'
+    var reMsg = 'hub reply'
+    var event = 'req rep'
+
+    tlsClient.rep(event, function(arg1, reply) {
+      t.equal(arg1, msg, 'tls req match')
+      reply(reMsg)
+    })
+
+    setTimeout(function() {
+      tcpClient.req(event, msg, function(arg1) {
+        t.equal(arg1, reMsg, 'tcp rep match')
+      })
+    }, 100)
+  })
 }
