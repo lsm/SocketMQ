@@ -148,6 +148,11 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     t.ok(smqServer.hasTag('client1'), 'has tag "client1"')
     t.ok(smqServer.hasTag('client2'), 'has tag "client2"')
 
+    t.notOk(smqServer.tag(serverStream1, {}), 'tagging should fail if the tag is an object')
+    t.notOk(smqServer.tag(serverStream1, 1), 'tagging should fail if the tag is a number')
+    t.notOk(smqServer.tag(serverStream1, function() {}), 'tagging should fail if the tag is a number')
+    t.notOk(smqServer.tag(serverStream1, arguments), 'tagging should fail if the tag is not a array')
+
     t.end()
   })
 
