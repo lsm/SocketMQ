@@ -10,9 +10,11 @@ module.exports = function() {
   var eioClient
   var tcpClient
   var tlsClient
+  var eioStream
+  var tcpStream
 
   test('hub: eio + tcp + tls', function(t) {
-    t.plan(1)
+    t.plan(2)
 
     // Endpoints
     var eioEndpoint = 'eio://127.0.0.1:8081'
@@ -21,9 +23,13 @@ module.exports = function() {
 
     // Servers
     smqHub.bind(eioEndpoint, function(stream) {
+      eioStream = stream
       t.ok(stream, 'eio stream')
     })
-    smqHub.bind(tcpEndpoint)
+    smqHub.bind(tcpEndpoint, function(stream) {
+      tcpStream = stream
+      t.ok(stream, 'tcp stream')
+    })
     smqHub.bind(tlsEndpoint, {
       key: fs.readFileSync(certPath + '/server-key.pem'),
       cert: fs.readFileSync(certPath + '/server-cert.pem'),
@@ -45,24 +51,33 @@ module.exports = function() {
   })
 
   test('hub: pub/sub', function(t) {
-    t.plan(4)
+    t.plan(6)
     var msg = 'hub pub sub'
 
-    eioClient.sub('pub sub', function(arg1) {
+    eioClient.sub('eio sub', function(arg1) {
       t.equal(arg1, msg, 'eio get pub from tls')
+      t.equal(eioStream.__smq_tags__[0], 'SUB::eio sub', 'eio stream has SUB tag')
     })
-    tcpClient.sub('pub sub', function(arg1) {
+
+    tcpClient.sub('tcp sub', function(arg1) {
       t.equal(arg1, msg, 'tcp get pub from tls')
+      t.equal(tcpStream.__smq_tags__[0], 'SUB::tcp sub', 'tcp stream has SUB tag')
     })
-    tlsClient.sub('pub sub', function() {
-      t.notOk(true, 'tls should not get pub msg from itself')
+
+    tlsClient.sub('eio sub', function() {
+      t.notOk(true, 'tls should not get "eio pub" msg from itself')
     })
+    tlsClient.sub('tcp sub', function() {
+      t.notOk(true, 'tls should not get "tcp pub" msg from itself')
+    })
+
     tlsClient.sub('eio pub', function(arr) {
       t.equal(arr[0], 'eio', 'eio->tls arr[0] match')
       t.equal(arr[1], 3, 'eio->tls arr[1] match')
     })
 
-    tlsClient.pub('pub sub', msg)
+    tlsClient.pub('tcp sub', msg)
+    tlsClient.pub('eio sub', msg)
   })
 
   test('hub: req/rep', function(t) {
