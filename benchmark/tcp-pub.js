@@ -16,9 +16,14 @@ var str = Array(1024).join('a');
 console.log('sending %d per tick', perTick);
 console.log('sending %d byte messages', Buffer.byteLength(str));
 
-function more() {
-  for (var i = 0; i < perTick; ++i) smq.pub('pub.test', str);
-  setImmediate(more);
-}
+smq.on('connect', function() {
 
-more();
+  function more() {
+    for (var i = 0; i < perTick; ++i) smq.pub('pub.test', str);
+    setImmediate(more);
+  }
+
+  more();
+})
+
+

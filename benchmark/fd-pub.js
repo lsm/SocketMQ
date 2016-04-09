@@ -28,7 +28,13 @@ smq.on('connect', function() {
     setImmediate(more);
   }
 
-  more();
+  setTimeout(more, 1000)
+// more();
 })
 
+stream.writable = true
 smq.addStream(stream)
+
+smq.on('error', function(err) {
+  console.log(err);
+})
