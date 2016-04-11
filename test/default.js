@@ -252,4 +252,51 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     smqServer.removeListener('connect', onServerConnect)
     smqClient1.connect(endpoint, options)
   })
+
+  test(name + ': channel', function(t) {
+    t.plan(7)
+
+    var serverChatChannel = smqServer.channel('chat')
+    var serverRadioChannel = smqServer.channel('radio', 'lobby')
+    var clientChatLobby = smqClient1.channel('chat', 'lobby')
+    var clientRadioLobby = smqClient1.channel('radio', 'lobby')
+    var clientChatPrivate = smqClient1.channel('chat', 'private')
+
+    var msgLobby = 'message to lobby'
+    var msgPrivate = 'message to private'
+    var msgRadio = 'I am a creep'
+    var repRadio = 'I wish I was special'
+
+    // This will be called twice
+    serverChatChannel.sub('to lobby', function(channel, msg) {
+      t.equal(['lobby', 'private'].indexOf(channel) > -1, true, 'chat to lobby channel ' + channel)
+      t.equal(msg, msgLobby, 'to lobby message')
+    })
+
+    clientChatLobby.sub('to private', function() {
+      t.ok(false, 'Channel chat/lobby should never receive private message')
+    })
+
+    clientChatPrivate.sub('to private', function(msg) {
+      t.equal(msg, msgPrivate, 'to private message')
+    })
+
+    clientRadioLobby.rep('creep', function(msg, reply) {
+      t.equal(msg, msgRadio, 'radio/lobby req message')
+      reply(repRadio)
+    })
+
+    serverRadioChannel.rep('not creep', function() {
+      t.ok(false, 'Should not receive message for other channel')
+    })
+
+    clientChatLobby.pub('to lobby', msgLobby)
+    clientRadioLobby.pub('to lobby', msgLobby)
+    clientChatPrivate.pub('to lobby', msgLobby)
+    serverChatChannel.pubChn('private', 'to private', msgPrivate)
+    serverRadioChannel.req('creep', msgRadio, function(msg) {
+      t.equal(msg, repRadio, 'radio/lobby rep message')
+    })
+    clientRadioLobby.reqChn('other channel', 'not creep', 'hello')
+  })
 }
