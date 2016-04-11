@@ -95,4 +95,44 @@ module.exports = function() {
       t.equal(arg1, reMsg, 'tcp rep match')
     })
   })
+
+  test('hub: channel', function(t) {
+    t.plan(4)
+    var tlsChatLobby = tlsClient.channel('chat', 'lobby')
+    var tcpRadioLobby = tcpClient.channel('radio', 'lobby')
+    var eioChatLobby = eioClient.channel('chat', 'lobby')
+    var tlsRadio = tlsClient.channel('radio')
+
+    var msgLobby = 'message to lobby'
+    var msgRadio = 'I am a creep'
+    var repRadio = 'I wish I was special'
+
+    tlsClient.sub('to chat/lobby', function(msg) {
+      t.equal(msg, msgLobby, 'main socket chat/lobby message')
+    })
+
+    tlsChatLobby.sub('to chat/lobby', function(msg) {
+      t.equal(msg, msgLobby, 'to chat/lobby message')
+    })
+
+    tcpClient.sub('to chat/lobby', function() {
+      t.ok(false, 'should not receive message for other namespace')
+    })
+
+    tcpRadioLobby.sub('to chat/lobby', function() {
+      t.ok(false, 'should not receive message for other namespace')
+    })
+
+    tcpRadioLobby.rep('creep', function(msg, reply) {
+      t.equal(msg, msgRadio, 'radio/lobby req')
+      reply(repRadio)
+    })
+
+    tlsRadio.reqChn('lobby', 'creep', msgRadio, function(msg) {
+      console.log('ididididi', eioStream.id);
+      t.equal(msg, repRadio, 'radio/lobby rep')
+    })
+
+    eioChatLobby.pub('to chat/lobby', msgLobby)
+  })
 }
