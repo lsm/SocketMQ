@@ -1,5 +1,7 @@
 var Socket = require('./lib/socket/index')
 var SocketHub = require('./lib/socket/hub')
+var SocketGateway = require('./lib/socket/gateway')
+var SocketChannel = require('./lib/socket/channel')
 
 var socketmq = module.exports = function() {
   return new Socket()
@@ -21,4 +23,12 @@ socketmq.connect = function(uri, options, callback) {
 
 socketmq.hub = function() {
   return new SocketHub()
+}
+
+socketmq.gateway = function() {
+  return new SocketGateway()
+}
+
+socketmq.channel = function(ns, name) {
+  return new SocketChannel(null, ns, name)
 }
