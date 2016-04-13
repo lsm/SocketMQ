@@ -59,13 +59,10 @@ module.exports = function() {
 
     tlsClient = socketmq.channel('/chat', 'your room')
     tlsClient.connect(tlsEndpoint, tlsClientOptions)
-
-    eioClient.sub('eio sub', function() {})
-    tcpClient.rep('trigger ack', function() {})
   })
 
-  test('gateway: allow', function(t) {
-    t.plan(4)
+  test('gateway: allow/join', function(t) {
+    t.plan(5)
 
     var allow = false
     tcpClient.allow(function(pack, stream, dispatch) {
@@ -95,6 +92,13 @@ module.exports = function() {
     tlsClient.allow(function() {
       t.ok(false, 'tls should not get anything')
     })
+
+    eioClient.on('join', function() {
+      t.ok(true, 'eioClient joined')
+    })
+
+    eioClient.sub('eio sub', function() {})
+    tcpClient.rep('trigger ack', function() {})
   })
 
   test('gateway: pub/sub', function(t) {
