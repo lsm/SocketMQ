@@ -81,7 +81,12 @@ module.exports = function() {
           SUB: ['eio sub'],
           REP: ['chat message']
         }
-        tcpClient.queue.one([stream], type.INF, type.ACK, msg, meta)
+        tcpClient.queue.one([stream], {
+          type: type.INF,
+          event: type.ACK,
+          msg: msg,
+          meta: meta
+        })
       }
       pack.meta.session = {
         id: 1
