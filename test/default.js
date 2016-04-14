@@ -113,24 +113,24 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   test(name + ': req/rep', function(t) {
     t.plan(7)
 
-    smqClient1.rep('test rep', function(arg1, arg2, reply) {
+    smqServer.rep('test rep', function(arg1, arg2, reply) {
       t.equal(arg1, msg1, 'req arg1 match')
       t.equal(arg2, msg2, 'req arg2 match')
       reply(null, arg2, arg1)
     })
 
-    smqServer.req('test rep', msg1, msg2, function(err, arg2, arg1) {
+    smqClient1.req('test rep', msg1, msg2, function(err, arg2, arg1) {
       t.equal(err, null, 'rep err match')
       t.equal(arg1, msg1, 'rep arg1 match')
       t.equal(arg2, msg2, 'rep arg1 match')
     })
 
     smqServer.rep('test reply object', function(arg1, reply) {
-      t.equal(arg1.key, obj.key)
+      t.equal(arg1.key, obj.key, 'req object match')
       reply(obj)
     })
-    smqClient1.req('test reply object', obj, function(obj1) {
-      t.equal(obj1.key, obj.key)
+    smqClient2.req('test reply object', obj, function(obj1) {
+      t.equal(obj1.key, obj.key, 'rep object match')
     })
   })
 
