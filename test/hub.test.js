@@ -81,8 +81,9 @@ module.exports = function() {
   })
 
   test('hub: req/rep', function(t) {
-    t.plan(2)
+    t.plan(7)
     var msg = 'hub request'
+    var msgNoCB = 'hub request no cb'
     var reMsg = 'hub reply'
     var event = 'req rep'
 
@@ -94,10 +95,23 @@ module.exports = function() {
     tcpClient.req(event, msg, function(arg1) {
       t.equal(arg1, reMsg, 'tcp rep match')
     })
+
+    tcpClient.rep('without callback', function(arg1, reply) {
+      t.equal(arg1, msgNoCB, 'without callback arg1 match')
+      t.equal(reply, undefined, 'without callback no reply')
+    })
+    tlsClient.req('without callback', msgNoCB)
+
+    eioClient.rep('without callback multiple args', function(arg1, arg2, reply) {
+      t.equal(arg1, msgNoCB, 'without callback multiple args arg1 match')
+      t.equal(arg2, reMsg, 'without callback multiple args arg2 match')
+      t.equal(reply, undefined, 'without callback multiple args no reply')
+    })
+    tlsClient.req('without callback multiple args', msgNoCB, reMsg)
   })
 
   test('hub: channel', function(t) {
-    t.plan(4)
+    t.plan(8)
     var tlsChatLobby = tlsClient.channel('chat', 'lobby')
     var tcpRadioLobby = tcpClient.channel('radio', 'lobby')
     var eioChatLobby = eioClient.channel('chat', 'lobby')
@@ -129,10 +143,18 @@ module.exports = function() {
     })
 
     tlsRadio.reqChn('lobby', 'creep', msgRadio, function(msg) {
-      console.log('ididididi', eioStream.id);
       t.equal(msg, repRadio, 'radio/lobby rep')
     })
 
+    eioChatLobby.rep('no callback', function(arg1, arg2, arg3, reply) {
+      t.equal(arg1, msgLobby, 'arg1 match')
+      t.equal(arg2, msgRadio, 'arg2 match')
+      t.equal(arg3, repRadio, 'arg3 match')
+      t.equal(reply, undefined, 'no reply function')
+    })
+
     eioChatLobby.pub('to chat/lobby', msgLobby)
+
+    tlsChatLobby.req('no callback', msgLobby, msgRadio, repRadio)
   })
 }

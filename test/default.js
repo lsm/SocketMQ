@@ -111,7 +111,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   })
 
   test(name + ': req/rep', function(t) {
-    t.plan(7)
+    t.plan(12)
 
     smqServer.rep('test rep', function(arg1, arg2, reply) {
       t.equal(arg1, msg1, 'req arg1 match')
@@ -132,6 +132,19 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     smqClient2.req('test reply object', obj, function(obj1) {
       t.equal(obj1.key, obj.key, 'rep object match')
     })
+
+    smqServer.rep('without callback', function(arg1, reply) {
+      t.equal(arg1, msg1, 'without callback arg1 match')
+      t.equal(reply, undefined, 'without callback no reply')
+    })
+    smqClient1.req('without callback', msg1)
+
+    smqServer.rep('without callback multiple args', function(arg1, arg2, reply) {
+      t.equal(arg1, msg1, 'without callback multiple args arg1 match')
+      t.equal(arg2, msg2, 'without callback multiple args arg2 match')
+      t.equal(reply, undefined, 'without callback multiple args no reply')
+    })
+    smqClient2.req('without callback multiple args', msg1, msg2)
   })
 
   test(name + ': tag clients', function(t) {

@@ -79,7 +79,7 @@ module.exports = function() {
         // Tell gateway what message we allow
         var msg = {
           SUB: ['eio sub'],
-          REP: ['chat message']
+          REP: ['chat message', 'without callback', 'without callback multiple args']
         }
         tcpClient.queue.one([stream], {
           type: type.INF,
@@ -123,7 +123,7 @@ module.exports = function() {
   })
 
   test('gateway: req/rep', function(t) {
-    t.plan(8)
+    t.plan(15)
 
     var eioReqMsg = 'eio req msg'
     var tcpRepMsg = 'tcp rep msg'
@@ -147,6 +147,20 @@ module.exports = function() {
       reply(tcpRepMsg)
     })
 
+    var nocb1 = 'nocb1'
+    var nocb2 = 'nocb2'
+    tcpClient.rep('without callback', function(chn, arg1, reply) {
+      t.equal(chn, 'my room', 'without callback chn match')
+      t.equal(arg1, nocb1, 'without callback arg1 match')
+      t.equal(reply, undefined, 'without callback no reply')
+    })
+    tcpClient.rep('without callback multiple args', function(chn, arg1, arg2, reply) {
+      t.equal(chn, 'my room', 'without callback multiple args chn match')
+      t.equal(arg1, nocb1, 'without callback multiple args arg1 match')
+      t.equal(arg2, nocb2, 'without callback multiple args arg2 match')
+      t.equal(reply, undefined, 'without callback multiple args no reply')
+    })
+
     setTimeout(function() {
       eioClient.req('chat message', eioReqMsg, function(msg) {
         t.equal(msg, tcpRepMsg, 'tcp rep msg')
@@ -156,6 +170,9 @@ module.exports = function() {
       eioClient.req('chat message 2', eioReqMsg, function() {
         t.ok(false, 'should never get reply')
       })
+
+      eioClient.req('without callback', nocb1)
+      eioClient.req('without callback multiple args', nocb1, nocb2)
     }, 100)
   })
 }
