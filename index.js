@@ -1,6 +1,6 @@
 var Socket = require('./lib/socket/index')
-var SocketHub = require('./lib/socket/hub')
-var SocketGateway = require('./lib/socket/gateway')
+var SocketHub = require('./lib/socket' + '/hub')
+var SocketGateway = require('./lib/socket' + '/gateway')
 var SocketChannel = require('./lib/socket/channel')
 
 var socketmq = module.exports = function() {
