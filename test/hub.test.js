@@ -14,7 +14,7 @@ module.exports = function() {
   var tcpStream
 
   test('hub: eio + tcp + tls', function(t) {
-    t.plan(2)
+    t.plan(3)
 
     // Endpoints
     var eioEndpoint = 'eio://127.0.0.1:8081'
@@ -34,6 +34,8 @@ module.exports = function() {
       key: fs.readFileSync(certPath + '/server-key.pem'),
       cert: fs.readFileSync(certPath + '/server-cert.pem'),
       ca: [fs.readFileSync(certPath + '/client-cert.pem')]
+    }, function(stream) {
+      t.ok(stream, 'tls stream')
     })
 
     // Clients
@@ -56,12 +58,12 @@ module.exports = function() {
 
     eioClient.sub('eio sub', function(arg1) {
       t.equal(arg1, msg, 'eio get pub from tls')
-      t.equal(eioStream.__smq_tags__[0], 'SUB::eio sub', 'eio stream has SUB tag')
+      t.ok(eioClient.hasTag('SUB::eio sub', eioStream), 'eio stream has SUB tag')
     })
 
     tcpClient.sub('tcp sub', function(arg1) {
       t.equal(arg1, msg, 'tcp get pub from tls')
-      t.equal(tcpStream.__smq_tags__[0], 'SUB::tcp sub', 'tcp stream has SUB tag')
+      t.ok(tcpClient.hasTag('SUB::tcp sub', tcpStream), 'tcp stream has SUB tag')
     })
 
     tlsClient.sub('eio sub', function() {
@@ -75,6 +77,10 @@ module.exports = function() {
       t.equal(arr[0], 'eio', 'eio->tls arr[0] match')
       t.equal(arr[1], 3, 'eio->tls arr[1] match')
     })
+
+    eioClient.queue.ack()
+    tcpClient.queue.ack()
+    tlsClient.queue.ack()
 
     tlsClient.pub('tcp sub', msg)
     tlsClient.pub('eio sub', msg)
@@ -100,14 +106,19 @@ module.exports = function() {
       t.equal(arg1, msgNoCB, 'without callback arg1 match')
       t.equal(reply, undefined, 'without callback no reply')
     })
-    tlsClient.req('without callback', msgNoCB)
 
     eioClient.rep('without callback multiple args', function(arg1, arg2, reply) {
       t.equal(arg1, msgNoCB, 'without callback multiple args arg1 match')
       t.equal(arg2, reMsg, 'without callback multiple args arg2 match')
       t.equal(reply, undefined, 'without callback multiple args no reply')
     })
+
+    eioClient.queue.ack()
+    tcpClient.queue.ack()
+    tlsClient.queue.ack()
+
     tlsClient.req('without callback multiple args', msgNoCB, reMsg)
+    tlsClient.req('without callback', msgNoCB)
   })
 
   test('hub: channel', function(t) {

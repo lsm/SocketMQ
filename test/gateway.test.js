@@ -53,6 +53,7 @@ module.exports = function() {
 
     eioClient = socketmq.channel('/chat', 'my room')
     eioClient.connect(eioEndpoint)
+    eioClient.sub('eio sub', function() {})
 
     tcpClient = socketmq.channel('/chat')
     tcpClient.connect(tcpEndpoint)
@@ -102,8 +103,10 @@ module.exports = function() {
       t.ok(true, 'eioClient joined')
     })
 
-    eioClient.sub('eio sub', function() {})
     tcpClient.rep('trigger ack', function() {})
+    tcpClient.queue.ack()
+    eioClient.queue.ack()
+    tlsClient.queue.ack()
   })
 
   test('gateway: pub/sub', function(t) {
@@ -161,18 +164,17 @@ module.exports = function() {
       t.equal(reply, undefined, 'without callback multiple args no reply')
     })
 
-    setTimeout(function() {
-      eioClient.req('chat message', eioReqMsg, function(msg) {
-        t.equal(msg, tcpRepMsg, 'tcp rep msg')
-        t.ok(smqGateway.hasTag('/chat::REP::chat message', tcpStream), 'has REP tag')
-        t.ok(smqGateway.hasTag('/chat::ACK', tcpStream), 'has ACK tag')
-      })
-      eioClient.req('chat message 2', eioReqMsg, function() {
-        t.ok(false, 'should never get reply')
-      })
+    tcpClient.queue.ack()
 
-      eioClient.req('without callback', nocb1)
-      eioClient.req('without callback multiple args', nocb1, nocb2)
-    }, 100)
+    eioClient.req('chat message', eioReqMsg, function(msg) {
+      t.equal(msg, tcpRepMsg, 'tcp rep msg')
+      t.ok(smqGateway.hasTag('/chat::REP::chat message', tcpStream), 'has REP tag')
+      t.ok(smqGateway.hasTag('/chat::ACK', tcpStream), 'has ACK tag')
+    })
+    eioClient.req('chat message 2', eioReqMsg, function() {
+      t.ok(false, 'should never get reply')
+    })
+    eioClient.req('without callback', nocb1)
+    eioClient.req('without callback multiple args', nocb1, nocb2)
   })
 }
