@@ -177,4 +177,13 @@ module.exports = function() {
     eioClient.req('without callback', nocb1)
     eioClient.req('without callback multiple args', nocb1, nocb2)
   })
+
+  test('gateway: leave', function(t) {
+    t.plan(1)
+    eioClient.leave()
+    tcpClient.pubChn('my room', 'eio sub', 'message should not be delivered')
+    t.throws(function() {
+      eioClient.req('without callback', 'message should not be delivered')
+    }, /TypeError: Cannot read property 'req' of undefined/, 'throw exception when req after leave')
+  })
 }
