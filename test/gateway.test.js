@@ -179,11 +179,25 @@ module.exports = function() {
   })
 
   test('gateway: leave', function(t) {
-    t.plan(1)
-    eioClient.leave()
-    tcpClient.pubChn('my room', 'eio sub', 'message should not be delivered')
+    t.plan(5)
+    eioClient.on('leave', function(ns, chn) {
+      t.equal(ns, '/chat', 'leave namepace')
+      t.equal(chn, 'my room', 'leave channel')
+    })
+
     t.throws(function() {
-      eioClient.req('without callback', 'message should not be delivered')
-    }, /TypeError: Cannot read property 'req' of undefined/, 'throw exception when req after leave')
+      eioClient.join()
+    }, /`join` requires channel name/)
+    t.throws(function() {
+      eioClient.join('new room')
+    }, /Already in channel "my room", leave it first/)
+
+    eioClient.leave()
+
+    t.throws(function() {
+      eioClient.leave()
+    }, /Already left or not joined/)
+
+    tcpClient.pubChn('my room', 'eio sub', 'message should not be delivered')
   })
 }
