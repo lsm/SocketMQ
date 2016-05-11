@@ -179,7 +179,7 @@ module.exports = function() {
   })
 
   test('gateway: leave', function(t) {
-    t.plan(5)
+    t.plan(4)
     eioClient.on('leave', function(ns, chn) {
       t.equal(ns, '/chat', 'leave namepace')
       t.equal(chn, 'my room', 'leave channel')
@@ -193,10 +193,6 @@ module.exports = function() {
     }, /Already in channel "my room", leave it first/)
 
     eioClient.leave()
-
-    t.throws(function() {
-      eioClient.leave()
-    }, /Already left or not joined/)
 
     tcpClient.pubChn('my room', 'eio sub', 'message should not be delivered')
   })
