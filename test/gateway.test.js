@@ -2,7 +2,7 @@ var fs = require('fs')
 var path = require('path')
 var test = require('tape')
 var socketmq = require('../')
-var type = require('../lib/message/type')
+var type = socketmq.type
 
 var certPath = path.join(__dirname, '../benchmark/certs')
 
@@ -63,7 +63,7 @@ module.exports = function() {
   })
 
   test('gateway: allow/join', function(t) {
-    t.plan(5)
+    t.plan(8)
 
     var allow = false
     tcpClient.allow(function(pack, stream, dispatch) {
@@ -99,7 +99,10 @@ module.exports = function() {
       t.ok(false, 'tls should not get anything')
     })
 
-    eioClient.on('join', function() {
+    eioClient.on('join', function(reason, ns, chn) {
+      t.equal(reason, type.JOINED, 'join reason match')
+      t.equal(ns, '/chat', 'join ns match')
+      t.equal(chn, 'my room', 'join chn match')
       t.ok(true, 'eioClient joined')
     })
 
