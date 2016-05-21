@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/lsm/SocketMQ.svg?branch=master)](https://travis-ci.org/lsm/SocketMQ)
 [![Coverage Status](https://coveralls.io/repos/github/lsm/SocketMQ/badge.svg?branch=master)](https://coveralls.io/github/lsm/SocketMQ?branch=master)
 
-Lightweight stream oriented messaging library.
+Lightweight stream oriented full-stack messaging library.
 
 ## Messaging Types
 SocketMQ supports `req/rep` and `pub/sub` messaging patterns. Messaging pattern is high level concept of how messages should be handled on sending and receiving. It's `client/server & transport agnostic` which means you can use all 4 types of messaging pattern no matter you are connected to a server or being connected from a client with any of the transports supported.
