@@ -15,8 +15,9 @@ module.exports = function() {
     var smqClient2 = socketmq.connect(endpoint)
 
     var smqErrClient = socketmq.connect('tcp://127.0.0.1:3636')
-    smqErrClient.on('stream error', function(socket) {
-      t.ok(socket, 'tcp get stream connection error')
+    smqErrClient.on('stream error', function(err, socket) {
+      t.equal(err.code, 'ECONNREFUSED', 'tcp get stream connection error')
+      t.ok(socket, 'tcp has socket instance in error event')
     })
 
     testDefault('tcp', t, smqServer, smqClient1, smqClient2, endpoint)

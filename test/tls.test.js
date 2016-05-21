@@ -30,8 +30,9 @@ module.exports = function() {
     var smqClient2 = socketmq.connect(endpoint, clientOptions)
 
     var smqErrClient = socketmq.connect('tls://localhost:43636', clientOptions)
-    smqErrClient.on('stream error', function(socket) {
-      t.ok(socket, 'tls get stream connection error')
+    smqErrClient.on('stream error', function(err, socket) {
+      t.equal(err.code, 'ECONNREFUSED', 'tls get stream connection error')
+      t.ok(socket, 'tls has socket instance in error event')
     })
 
     testDefault('tls', t, smqServer, smqClient1, smqClient2, endpoint, clientOptions)
