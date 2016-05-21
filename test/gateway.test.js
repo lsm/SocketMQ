@@ -10,7 +10,7 @@ module.exports = function() {
   var smqGateway = socketmq.gateway()
 
   smqGateway.isUntrusted = function(stream) {
-    return 'eio:' === stream.__smq_protocol__
+    return 'eio' === stream.__smq__.protocol
   }
 
   var eioClient
