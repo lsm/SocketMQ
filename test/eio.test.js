@@ -14,6 +14,11 @@ module.exports = function() {
     })
     var smqClient2 = socketmq.connect(endpoint)
 
+    var smqErrClient = socketmq.connect('eio://127.0.0.1:9090')
+    smqErrClient.on('stream error', function(socket) {
+      t.ok(socket, 'eio get stream connection error')
+    })
+
     testDefault('eio', t, smqServer, smqClient1, smqClient2, endpoint)
   })
 }

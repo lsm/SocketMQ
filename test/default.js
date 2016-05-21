@@ -1,7 +1,8 @@
 var test = require('tape')
 
 module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, options) {
-  T.plan(21)
+  // Three were in the tcp/tls/eio transport tests
+  T.plan(22)
 
   var serverStream1
   var serverStream2
@@ -12,8 +13,8 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     else
       serverStream1 = stream
     T.pass('server connect event')
-    T.ok(stream.readable, 'stream is readable')
-    T.ok(stream.writable, 'stream is writable')
+    T.ok(stream.readable, 'server stream is readable')
+    T.ok(stream.writable, 'server stream is writable')
   }
 
   smqServer.on('connect', onServerConnect)
@@ -22,8 +23,8 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   function onClient1Connect(stream) {
     clientStream1 = stream
     T.pass('client1 connect event')
-    T.ok(stream.readable, 'stream is readable')
-    T.ok(stream.writable, 'stream is writable')
+    T.ok(stream.readable, 'stream1 is readable')
+    T.ok(stream.writable, 'stream1 is writable')
     T.ok(smqClient1.hasTag(endpoint), 'client1 has default tag')
     T.equal(smqClient1.tag(endpoint, 'tag by uri'), 1, 'tag by endpoint uri')
     T.equal(smqClient1.tag(endpoint, 'tag by uri'), 0, 'tag existing tag again')
@@ -36,8 +37,8 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   smqClient2.on('connect', function(stream) {
     clientStream2 = stream
     T.pass('client2 connect event')
-    T.ok(stream.readable, 'stream is readable')
-    T.ok(stream.writable, 'stream is writable')
+    T.ok(stream.readable, 'stream2 is readable')
+    T.ok(stream.writable, 'stream2 is writable')
     T.ok(smqClient2.hasTag(endpoint), 'client2 has default tag')
     T.equal(smqClient1.tag(endpoint + '123456', 'tag by non-existent uri'), false, 'tag by non-existent uri')
     T.notOk(smqClient1.hasTag('tag by non-existent uri'), 'tag by non-existent uri')
@@ -231,14 +232,14 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     smqServer.pubTag('no such tag', 'event', 'message')
   })
 
-  test(name + ': streamError', function(t) {
+  test(name + ': stream error', function(t) {
     t.plan(4)
     smqClient2.on('disconnect', function(stream) {
       t.equal(stream, clientStream2, 'disconnect stream match')
     })
-    smqClient2.on('streamError', function(err, stream) {
-      t.equal(err, 'some error', 'streamError error match')
-      t.equal(stream, clientStream2, 'streamError stream match')
+    smqClient2.on('stream error', function(err, stream) {
+      t.equal(err, 'some error', 'stream error match')
+      t.equal(stream, clientStream2, 'stream error stream match')
     })
     clientStream2.emit('error', 'some error')
   })
