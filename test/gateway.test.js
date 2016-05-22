@@ -63,7 +63,7 @@ module.exports = function() {
   })
 
   test('gateway: allow/join', function(t) {
-    t.plan(8)
+    t.plan(7)
 
     var allow = false
     tcpClient.allow(function(pack, stream, dispatch) {
@@ -103,7 +103,6 @@ module.exports = function() {
       t.equal(reason, type.JOINED, 'join reason match')
       t.equal(ns, '/chat', 'join ns match')
       t.equal(chn, 'my room', 'join chn match')
-      t.ok(true, 'eioClient joined')
     })
 
     tcpClient.rep('trigger ack', function() {})
