@@ -99,7 +99,7 @@ module.exports = function() {
       t.ok(false, 'tls should not get anything')
     })
 
-    eioClient.on('join', function(reason, ns, chn) {
+    eioClient.once('join', function onjoin(reason, ns, chn) {
       t.equal(reason, type.JOINED, 'join reason match')
       t.equal(ns, '/chat', 'join ns match')
       t.equal(chn, 'my room', 'join chn match')
