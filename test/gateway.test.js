@@ -182,10 +182,11 @@ module.exports = function() {
   })
 
   test('gateway: leave', function(t) {
-    t.plan(4)
-    eioClient.on('leave', function(ns, chn) {
+    t.plan(5)
+    eioClient.on('leave', function(reason, ns, chn) {
       t.equal(ns, '/chat', 'leave namepace')
       t.equal(chn, 'my room', 'leave channel')
+      t.equal(reason, type.EXITED, 'leave reason')
     })
 
     t.throws(function() {
