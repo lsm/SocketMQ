@@ -19,13 +19,13 @@ module.exports = function() {
   var eioStream
   var tcpStream
 
+  // Endpoints
+  var eioEndpoint = 'eio://127.0.0.1:8082'
+  var tcpEndpoint = 'tcp://127.0.0.1:6365'
+  var tlsEndpoint = 'tls://localhost:46365'
+
   test('gateway: eio + tcp + tls', function(t) {
     t.plan(3)
-
-    // Endpoints
-    var eioEndpoint = 'eio://127.0.0.1:8082'
-    var tcpEndpoint = 'tcp://127.0.0.1:6365'
-    var tlsEndpoint = 'tls://localhost:46365'
 
     // Servers
     smqGateway.bind(eioEndpoint, function(stream) {
@@ -33,8 +33,9 @@ module.exports = function() {
       t.ok(stream, 'eio stream')
     })
     smqGateway.bind(tcpEndpoint, function(stream) {
+      if (!tcpStream)
+        t.ok(stream, 'tcp stream')
       tcpStream = stream
-      t.ok(stream, 'tcp stream')
     })
     smqGateway.bind(tlsEndpoint, {
       key: fs.readFileSync(certPath + '/server-key.pem'),
@@ -58,21 +59,21 @@ module.exports = function() {
     tcpClient = socketmq.channel('/chat')
     tcpClient.connect(tcpEndpoint)
 
-    tlsClient = socketmq.channel('/chat', 'your room')
+    tlsClient = socketmq.channel('/talk')
     tlsClient.connect(tlsEndpoint, tlsClientOptions)
   })
 
   test('gateway: allow/join', function(t) {
     t.plan(7)
 
-    var allow = false
+    var tested = false
     tcpClient.allow(function(pack, stream, dispatch) {
       if (type.INF === pack.type && type.ACK === pack.event) {
-        if (false === allow) {
-          allow = true
+        var meta = pack.meta
+        if (false === tested) {
+          tested = true
           // INF ACK from eio
           t.equal(pack.msg.SUB[0], 'eio sub', 'INF ACK SUB')
-          var meta = pack.meta
           t.equal(meta.MNS, '/chat', 'INF ACK MNS')
           t.equal(meta.MCH, 'my room', 'INF ACK MCH')
           t.equal(meta.SID, eioStream.id, 'INF ACK SID')
@@ -181,8 +182,9 @@ module.exports = function() {
   })
 
   test('gateway: leave', function(t) {
-    t.plan(5)
-    eioClient.on('leave', function(reason, ns, chn) {
+    t.plan(7)
+
+    eioClient.once('leave', function(reason, ns, chn) {
       t.equal(ns, '/chat', 'leave namepace')
       t.equal(chn, 'my room', 'leave channel')
       t.equal(reason, type.EXITED, 'leave reason')
@@ -190,13 +192,59 @@ module.exports = function() {
 
     t.throws(function() {
       eioClient.join()
-    }, /`join` requires channel name/)
+    }, /`join` requires channel name/, 'exception: channel name is required')
     t.throws(function() {
       eioClient.join('new room')
-    }, /Already in channel "my room", leave it first/)
+    }, /Already in channel "my room", leave it first/, 'exception: already joined')
+
+    tcpClient.left(function(pack, stream) {
+      t.equal(stream, tcpClient.streams[0], 'left stream')
+      t.equal(pack.msg[0], type.EXITED, 'left reason')
+      tcpClient.left(null) // Reset left handler
+    })
 
     eioClient.leave()
 
     tcpClient.pubChn('my room', 'eio sub', 'message should not be delivered')
+  })
+
+  test('gateway: re-join, disconnect & reconnect', function(t) {
+    t.plan(11)
+
+    eioClient.once('join', function(reason, ns, chn) {
+      t.equal(reason, type.JOINED, 're-join reason')
+      t.equal(ns, '/chat', 're-join ns')
+      t.equal(chn, 'my room', 're-join chn')
+      tcpClient.close(tcpStream)
+    })
+
+    eioClient.once('leave', function(reason, ns, chn) {
+      t.equal(ns, '/chat', 'SRVERR leave namepace')
+      t.equal(chn, 'my room', 'SRVERR leave channel')
+      t.equal(reason, type.SRVERR, 'SRVERR leave reason')
+
+
+      eioClient.on('join', function(reason, ns, chn) {
+        t.equal(reason, type.JOINED, 'reconnect join reason')
+        t.equal(ns, '/chat', 'reconnect join ns')
+        t.equal(chn, 'my room', 'reconnect join chn')
+        eioClient.close(eioClient.streams[0])
+      })
+
+      tcpClient.left(function(pack, stream) {
+        t.equal(stream, tcpClient.streams[0], 'DISCON left stream')
+        t.equal(pack.msg[0], type.DISCON, 'DISCON left reason')
+      })
+
+      // Connect again and test disconnect from unstrusted streams
+      tcpClient.connect(tcpEndpoint, function() {
+        // Re-join after tcpClient is connected
+        setTimeout(function() {
+          eioClient.join('my room')
+        }, 300)
+      })
+    })
+
+    eioClient.join('my room')
   })
 }
