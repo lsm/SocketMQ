@@ -209,7 +209,7 @@ module.exports = function() {
   })
 
   test('gateway: re-join, disconnect & reconnect', function(t) {
-    t.plan(11)
+    t.plan(14)
 
     eioClient.once('join', function(reason, ns, chn) {
       t.equal(reason, type.JOINED, 're-join reason')
@@ -229,6 +229,13 @@ module.exports = function() {
         t.equal(ns, '/chat', 'reconnect join ns')
         t.equal(chn, 'my room', 'reconnect join chn')
         eioClient.close(eioClient.streams[0])
+      })
+
+      eioClient.once('leave', function(reason, ns, chn) {
+        console.log('leave-----', arguments);
+        t.equal(ns, '/chat', 'DISCON leave namepace')
+        t.equal(chn, 'my room', 'DISCON leave channel')
+        t.equal(reason, type.DISCON, 'DISCON leave reason')
       })
 
       tcpClient.left(function(pack, stream) {
