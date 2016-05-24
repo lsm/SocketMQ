@@ -232,7 +232,6 @@ module.exports = function() {
       })
 
       eioClient.once('leave', function(reason, ns, chn) {
-        console.log('leave-----', arguments);
         t.equal(ns, '/chat', 'DISCON leave namepace')
         t.equal(chn, 'my room', 'DISCON leave channel')
         t.equal(reason, type.DISCON, 'DISCON leave reason')
