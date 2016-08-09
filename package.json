@@ -11,13 +11,13 @@
     "inherits": "2.0.1"
   },
   "devDependencies": {
-    "coveralls": "2.11.9",
-    "engine.io": "1.6.9",
-    "engine.io-client": "1.6.9",
+    "coveralls": "2.11.12",
+    "engine.io": "1.6.11",
+    "engine.io-client": "1.6.11",
     "humanize-number": "0.0.2",
-    "istanbul": "0.4.3",
-    "nodemon": "1.9.2",
-    "tape": "4.5.1"
+    "istanbul": "0.4.4",
+    "nodemon": "1.10.0",
+    "tape": "4.6.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
