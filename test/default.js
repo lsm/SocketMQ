@@ -313,4 +313,24 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     })
     clientRadioLobby.reqChn('other channel', 'not creep', 'hello')
   })
+
+  test(name + ': channel disconnect', function(t) {
+    t.plan(5)
+    var serverChannel = smqServer.channel('namespace')
+    var clientChannel = smqClient1.channel('namespace', 'room')
+
+    serverChannel.sub('message', function(channel, msg) {
+      t.equal('room', channel, 'channel name is correct')
+      t.equal('some message', msg, 'message is correct')
+      smqClient1.close(smqClient1.streams[0])
+    })
+
+    clientChannel.on('leave', function(reason, ns, chn) {
+      t.equal(reason, 'DISCON', 'leave reason DISCON')
+      t.equal(ns, 'namespace', 'ns is namespace')
+      t.equal(chn, 'room', 'channel is room')
+    })
+
+    clientChannel.pub('message', 'some message')
+  })
 }
