@@ -2,7 +2,7 @@ var test = require('tape')
 
 module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, options) {
   // 4 were in the tcp/tls/eio transport tests
-  T.plan(23)
+  T.plan(24)
 
   var serverStream1
   var serverStream2
@@ -202,7 +202,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
 
   test(name + ': disconnect', function(t) {
     t.plan(1)
-    smqClient1.on('disconnect', function(stream) {
+    smqClient1.once('disconnect', function(stream) {
       t.equal(stream, clientStream1, 'clientStream1 disconnected')
     })
     clientStream1.end()
@@ -211,8 +211,8 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   test(name + ': error', function(t) {
     t.plan(3)
 
-    smqClient1.on('error', function(error) {
-      t.equal(error, smqClient1.ERR_UNWRITABLE, 'emit unwritable error')
+    smqClient1.on('error', function(event) {
+      t.equal(event.type, smqClient1.ERR_UNWRITABLE, 'emit unwritable error')
     })
 
     smqClient1.removeListener('connect', onClient1Connect)
@@ -221,25 +221,26 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     smqClient1.removeAllListeners('disconnect')
     smqClient1.removeStream(clientStream1)
 
-    smqClient2.on('error', function(error) {
-      t.equal(error, smqClient2.ERR_NO_TAGGED_STREAM, 'client emit no stream for tag error')
+    smqClient2.once('error', function handle(event) {
+      t.equal(event.type, smqClient2.ERR_NO_TAGGED_STREAM, 'client emit no stream for tag error')
     })
     smqClient2.reqTag('no such tag', 'event', 'message', function() {})
 
-    smqServer.on('error', function(error) {
-      t.equal(error, smqClient2.ERR_NO_TAGGED_STREAM, 'server emit no stream for tag error')
+    smqServer.on('error', function(event) {
+      t.equal(event.type, smqClient2.ERR_NO_TAGGED_STREAM, 'server emit no stream for tag error')
     })
     smqServer.pubTag('no such tag', 'event', 'message')
   })
 
-  test(name + ': stream error', function(t) {
+  test(name + ': error ERR_STREAM', function(t) {
     t.plan(4)
     smqClient2.on('disconnect', function(stream) {
       t.equal(stream, clientStream2, 'disconnect stream match')
     })
-    smqClient2.on('stream error', function(err, stream) {
-      t.equal(err, 'some error', 'stream error match')
-      t.equal(stream, clientStream2, 'stream error stream match')
+    smqClient2.on('error', function(event) {
+      t.equal(event.type, smqClient2.ERR_STREAM, 'error type match')
+      t.equal(event.error, 'some error', 'error match')
+      t.equal(event.stream, clientStream2, 'error stream match')
     })
     clientStream2.emit('error', 'some error')
   })
@@ -322,7 +323,9 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     serverChannel.sub('message', function(channel, msg) {
       t.equal('room', channel, 'channel name is correct')
       t.equal('some message', msg, 'message is correct')
-      smqClient1.close(smqClient1.streams[0])
+      setTimeout(function() {
+        smqClient1.close(smqClient1.streams[0])
+      }, 100)
     })
 
     clientChannel.on('leave', function(reason, ns, chn) {

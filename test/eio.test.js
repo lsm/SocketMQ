@@ -15,9 +15,10 @@ module.exports = function() {
     var smqClient2 = socketmq.connect(endpoint)
 
     var smqErrClient = socketmq.connect('eio://127.0.0.1:9090')
-    smqErrClient.on('stream error', function(err, socket) {
-      t.equal(err.type, 'TransportError', 'eio get stream connection error')
-      t.ok(socket, 'eio has socket instance in error event')
+    smqErrClient.on('error', function(event) {
+      t.equal(event.type, smqErrClient.ERR_STREAM, 'error type match')
+      t.equal(event.error.type, 'TransportError', 'eio get stream connection error')
+      t.ok(event.stream, 'eio has stream instance in error event')
     })
 
     testDefault('eio', t, smqServer, smqClient1, smqClient2, endpoint)
