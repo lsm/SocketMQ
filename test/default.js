@@ -1,4 +1,5 @@
 var test = require('tape')
+var socketmq = require('../index')
 
 module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, options) {
   // 4 were in the tcp/tls/eio transport tests
@@ -200,6 +201,30 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     smqServer.pubTag('client2', 'only for client2', 'hello client2', msg2)
   })
 
+  test(name + ': channel UNSUBS', function(t) {
+    t.plan(6)
+
+    var s1 = smqServer.channel('unsub')
+    var c1 = smqClient2.channel('unsub', 'channel1')
+    var c2 = smqClient2.channel('unsub', 'channel1')
+
+    var message = 'test'
+
+    s1.rep('reply', function(channel, msg) {
+      t.equal(channel, 'channel1', 'channel name')
+      t.equal(msg, message, 'message content')
+    })
+
+    c1.req('reply', message)
+    c2.req('reply', message)
+
+    c2.leave(socketmq.type.UNSUBS)
+
+    setTimeout(function() {
+      c1.req('reply', message)
+    }, 100)
+  })
+
   test(name + ': disconnect', function(t) {
     t.plan(1)
     smqClient1.once('disconnect', function(stream) {
@@ -329,7 +354,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     })
 
     clientChannel.on('leave', function(reason, ns, chn) {
-      t.equal(reason, 'DISCON', 'leave reason DISCON')
+      t.equal(reason, socketmq.type.DISCON, 'leave reason DISCON')
       t.equal(ns, 'namespace', 'ns is namespace')
       t.equal(chn, 'room', 'channel is room')
     })
