@@ -56,7 +56,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   var buffer = Buffer('buffer')
 
   test(name + ': pub/sub', function(t) {
-    t.plan(18)
+    t.plan(20)
 
     smqServer.sub('test string', function(str1) {
       t.equal(str1, str, 'string match')
@@ -88,12 +88,18 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
       t.equal(arg2, msg2, 'arg2 match')
     })
 
+    smqServer.sub('test no arguments', function(arg1, arg2) {
+      t.equal(arg1, undefined, 'no arg1')
+      t.equal(arg2, undefined, 'no arg2')
+    })
+
     smqClient1.pub('test string', str)
     smqClient1.pub('test buffer', buffer)
     smqClient1.pub('test object', obj)
     smqClient1.pub('test array', arr)
     smqClient1.pub('test number', num)
     smqClient1.pub('test multi arguments', msg1, msg2)
+    smqClient1.pub('test no arguments')
 
     // Pub to multiple clients
 
@@ -113,20 +119,9 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   })
 
   test(name + ': req/rep', function(t) {
-    t.plan(12)
+    t.plan(15)
 
-    smqServer.rep('test rep', function(arg1, arg2, reply) {
-      t.equal(arg1, msg1, 'req arg1 match')
-      t.equal(arg2, msg2, 'req arg2 match')
-      reply(null, arg2, arg1)
-    })
-
-    smqClient1.req('test rep', msg1, msg2, function(err, arg2, arg1) {
-      t.equal(err, null, 'rep err match')
-      t.equal(arg1, msg1, 'rep arg1 match')
-      t.equal(arg2, msg2, 'rep arg1 match')
-    })
-
+    // Single argument with callback
     smqServer.rep('test reply object', function(arg1, reply) {
       t.equal(arg1.key, obj.key, 'req object match')
       reply(obj)
@@ -135,18 +130,40 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
       t.equal(obj1.key, obj.key, 'rep object match')
     })
 
+    // Multiple arguments with callback
+    smqServer.rep('test rep', function(arg1, arg2, reply) {
+      t.equal(arg1, msg1, 'req arg1 match')
+      t.equal(arg2, msg2, 'req arg2 match')
+      reply(null, arg2, arg1)
+    })
+    smqClient1.req('test rep', msg1, msg2, function(err, arg2, arg1) {
+      t.equal(err, null, 'rep err match')
+      t.equal(arg1, msg1, 'rep arg1 match')
+      t.equal(arg2, msg2, 'rep arg1 match')
+    })
+
+    // Single arguments no callback
     smqServer.rep('without callback', function(arg1, reply) {
       t.equal(arg1, msg1, 'without callback arg1 match')
       t.equal(reply, undefined, 'without callback no reply')
     })
     smqClient1.req('without callback', msg1)
 
+    // Multiple arguments no callback
     smqServer.rep('without callback multiple args', function(arg1, arg2, reply) {
       t.equal(arg1, msg1, 'without callback multiple args arg1 match')
       t.equal(arg2, msg2, 'without callback multiple args arg2 match')
       t.equal(reply, undefined, 'without callback multiple args no reply')
     })
     smqClient2.req('without callback multiple args', msg1, msg2)
+
+    // No argument with no callback
+    smqServer.rep('without arguments', function(arg1, arg2, arg3) {
+      t.equal(arg1, undefined, 'no arguments arg1')
+      t.equal(arg2, undefined, 'no arguments arg2')
+      t.equal(arg3, undefined, 'no arguments arg3')
+    })
+    smqClient2.req('without arguments')
   })
 
   test(name + ': tag clients', function(t) {
@@ -172,7 +189,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   })
 
   test(name + ': send messages to tagged clients', function(t) {
-    t.plan(14)
+    t.plan(18)
 
     smqClient1.rep('only for client1', function(msg, arg1, reply) {
       t.equal(msg, 'hello client1', 'hello client1 match')
@@ -199,6 +216,18 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     })
 
     smqServer.pubTag('client2', 'only for client2', 'hello client2', msg2)
+
+    smqClient1.sub('pubTag for client1 no msg', function(arg1, arg2) {
+      t.equal(arg1, undefined, 'no arg1')
+      t.equal(arg2, undefined, 'no arg2')
+    })
+    smqServer.pubTag('client1', 'pubTag for client1 no msg')
+
+    smqClient1.rep('reqTag for client1 no msg', function(arg1, arg2) {
+      t.equal(arg1, undefined, 'no arg1')
+      t.equal(arg2, undefined, 'no arg2')
+    })
+    smqServer.reqTag('client1', 'reqTag for client1 no msg')
   })
 
   test(name + ': channel UNSUBS', function(t) {
@@ -294,7 +323,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   })
 
   test(name + ': channel', function(t) {
-    t.plan(7)
+    t.plan(16)
 
     var serverChatChannel = smqServer.channel('chat')
     var serverRadioChannel = smqServer.channel('radio', 'lobby')
@@ -338,6 +367,30 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
       t.equal(msg, repRadio, 'radio/lobby rep message')
     })
     clientRadioLobby.reqChn('other channel', 'not creep', 'hello')
+
+    serverChatChannel.sub('to lobby no msg', function(channel, msg) {
+      t.equal(channel, 'lobby', 'channel "lobby"')
+      t.equal(msg, undefined, 'no msg')
+    })
+    clientChatLobby.pub('to lobby no msg')
+
+    clientChatPrivate.sub('to private no msg', function(msg) {
+      t.equal(msg, undefined, 'no msg')
+    })
+    serverChatChannel.pubChn('private', 'to private no msg')
+
+    serverChatChannel.sub('to private no msg', function(channel, msg) {
+      t.equal(channel, 'private', 'channel "private"')
+      t.equal(msg, undefined, 'no msg')
+    })
+    clientChatPrivate.pub('to private no msg')
+
+    serverChatChannel.rep('req lobby no msg', function(channel, msg) {
+      t.equal(channel, 'lobby', 'channel "lobby"')
+      t.equal(msg, undefined, 'no msg')
+    })
+    clientChatLobby.req('req lobby no msg')
+    clientChatPrivate.reqChn('lobby', 'req lobby no msg')
   })
 
   test(name + ': channel disconnect', function(t) {
