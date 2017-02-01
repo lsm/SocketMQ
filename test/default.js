@@ -119,7 +119,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   })
 
   test(name + ': req/rep', function(t) {
-    t.plan(15)
+    t.plan(20)
 
     // Single argument with callback
     smqServer.rep('test reply object', function(arg1, reply) {
@@ -164,6 +164,27 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
       t.equal(arg3, undefined, 'no arguments arg3')
     })
     smqClient2.req('without arguments')
+
+    // With only callback
+    var onlyCallbackMsg = 'onlyCallbackMsg'
+    smqServer.rep('with only callback', function(reply) {
+      t.equal(typeof reply, 'function', 'got reply function')
+      reply(onlyCallbackMsg)
+    })
+    smqClient2.req('with only callback', function(msg) {
+      t.equal(msg, onlyCallbackMsg, 'replied message match')
+    })
+
+    // With undefined message and callback
+    var undefinedCallbackMsg = 'undefinedCallbackMsg'
+    smqServer.rep('with undefined & callback', function(msg, reply) {
+      t.equal(msg, null, 'got msg value undefined')
+      t.equal(typeof reply, 'function', 'got reply function')
+      reply(undefinedCallbackMsg)
+    })
+    smqClient2.req('with undefined & callback', undefined, function(msg) {
+      t.equal(msg, undefinedCallbackMsg, 'replied message match')
+    })
   })
 
   test(name + ': tag clients', function(t) {
