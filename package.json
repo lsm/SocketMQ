@@ -1,6 +1,6 @@
 {
   "name": "socketmq",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Lightweight stream-oriented messaging library for node.",
   "main": "index.js",
   "directories": {
