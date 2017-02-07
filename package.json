@@ -11,7 +11,7 @@
     "inherits": "2.0.3"
   },
   "devDependencies": {
-    "coveralls": "2.11.15",
+    "coveralls": "2.11.16",
     "engine.io": "2.0.1",
     "engine.io-client": "2.0.1",
     "humanize-number": "0.0.2",
