@@ -8,11 +8,16 @@ module.exports = function() {
     var endpoint = 'eio://127.0.0.1:8080'
 
     var smqServer = socketmq.bind(endpoint)
-    var smqClient1 = socketmq.connect(endpoint, {}, function() {
-      t.ok(smqClient1.hasTag(endpoint), 'default tag has been added')
-      t.ok(smqClient1.hasConnection(endpoint), 'endpoint connected')
+
+    smqServer.on('bind', function() {
+      var smqClient1 = socketmq.connect(endpoint, {}, function() {
+        t.ok(smqClient1.hasTag(endpoint), 'default tag has been added')
+        t.ok(smqClient1.hasConnection(endpoint), 'endpoint connected')
+      })
+      var smqClient2 = socketmq.connect(endpoint)
+
+      testDefault('eio', t, smqServer, smqClient1, smqClient2, endpoint)
     })
-    var smqClient2 = socketmq.connect(endpoint)
 
     var smqErrClient = socketmq.connect('eio://127.0.0.1:9090')
     smqErrClient.on('error', function(event) {
@@ -24,7 +29,5 @@ module.exports = function() {
     var noport = 'eio://'
     socketmq.bind(noport)
     t.pass('Bind should not crash when no port is not provided.')
-
-    testDefault('eio', t, smqServer, smqClient1, smqClient2, endpoint)
   })
 }

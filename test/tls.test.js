@@ -22,12 +22,15 @@ module.exports = function() {
       ca: [fs.readFileSync(certPath + '/client-cert.pem')]
     })
 
-    var smqClient1 = socketmq.connect(endpoint, clientOptions, function() {
-      t.ok(smqClient1.hasTag(endpoint), 'default tag has been added')
-      t.ok(smqClient1.hasConnection(endpoint), 'endpoint connected')
-    })
+    smqServer.on('bind', function() {
+      var smqClient1 = socketmq.connect(endpoint, clientOptions, function() {
+        t.ok(smqClient1.hasTag(endpoint), 'default tag has been added')
+        t.ok(smqClient1.hasConnection(endpoint), 'endpoint connected')
+      })
+      var smqClient2 = socketmq.connect(endpoint, clientOptions)
 
-    var smqClient2 = socketmq.connect(endpoint, clientOptions)
+      testDefault('tls', t, smqServer, smqClient1, smqClient2, endpoint, clientOptions)
+    })
 
     var smqErrClient = socketmq.connect('tls://localhost:43636', clientOptions)
     smqErrClient.on('error', function(event) {
@@ -39,7 +42,5 @@ module.exports = function() {
     var noport = 'tls://'
     socketmq.bind(noport)
     t.pass('Bind should not crash when no port is not provided.')
-
-    testDefault('tls', t, smqServer, smqClient1, smqClient2, endpoint, clientOptions)
   })
 }

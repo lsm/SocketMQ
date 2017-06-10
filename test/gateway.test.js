@@ -52,15 +52,21 @@ module.exports = function() {
       ca: [fs.readFileSync(certPath + '/server-cert.pem')]
     }
 
-    eioClient = socketmq.channel('/chat', 'my room')
-    eioClient.connect(eioEndpoint)
-    eioClient.sub('eio sub', function() {})
+    var bindCount = 0
+    smqGateway.on('bind', function() {
+      bindCount += 1
+      if (3 === bindCount) {
+        eioClient = socketmq.channel('/chat', 'my room')
+        eioClient.connect(eioEndpoint)
+        eioClient.sub('eio sub', function() {})
 
-    tcpClient = socketmq.channel('/chat')
-    tcpClient.connect(tcpEndpoint)
+        tcpClient = socketmq.channel('/chat')
+        tcpClient.connect(tcpEndpoint)
 
-    tlsClient = socketmq.channel('/talk')
-    tlsClient.connect(tlsEndpoint, tlsClientOptions)
+        tlsClient = socketmq.channel('/talk')
+        tlsClient.connect(tlsEndpoint, tlsClientOptions)
+      }
+    })
   })
 
   test('gateway: allow/join', function(t) {

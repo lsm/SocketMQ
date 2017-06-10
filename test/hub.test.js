@@ -45,11 +45,16 @@ module.exports = function() {
       ca: [fs.readFileSync(certPath + '/server-cert.pem')]
     }
 
-    eioClient = socketmq.connect(eioEndpoint)
-    tcpClient = socketmq.connect(tcpEndpoint)
-    tlsClient = socketmq.connect(tlsEndpoint, tlsClientOptions)
-
-    eioClient.pub('eio pub', ['eio', 3])
+    var bindCount = 0
+    smqHub.on('bind', function() {
+      bindCount += 1
+      if (3 === bindCount) {
+        eioClient = socketmq.connect(eioEndpoint)
+        tcpClient = socketmq.connect(tcpEndpoint)
+        tlsClient = socketmq.connect(tlsEndpoint, tlsClientOptions)
+        eioClient.pub('eio pub', ['eio', 3])
+      }
+    })
   })
 
   test('hub: pub/sub', function(t) {
