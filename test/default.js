@@ -3,7 +3,7 @@ var socketmq = require('../index')
 
 module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, options) {
   // 4 were in the tcp/tls/eio transport tests
-  T.plan(24)
+  T.plan(25)
 
   var serverStream1
   var serverStream2

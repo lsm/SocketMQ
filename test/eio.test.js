@@ -21,6 +21,10 @@ module.exports = function() {
       t.ok(event.stream, 'eio has stream instance in error event')
     })
 
+    var noport = 'eio://'
+    socketmq.bind(noport)
+    t.pass('Bind should not crash when no port is not provided.')
+
     testDefault('eio', t, smqServer, smqClient1, smqClient2, endpoint)
   })
 }
