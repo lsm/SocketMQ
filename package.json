@@ -1,7 +1,7 @@
 {
   "name": "socketmq",
   "version": "0.10.1",
-  "description": "Lightweight stream-oriented messaging library for node.",
+  "description": "Lightweight messaging library for node & browser.",
   "main": "index.js",
   "directories": {
     "example": "example"
@@ -11,13 +11,13 @@
     "inherits": "2.0.3"
   },
   "devDependencies": {
-    "coveralls": "2.13.1",
-    "engine.io": "3.1.0",
-    "engine.io-client": "3.1.1",
+    "coveralls": "3.0.0",
+    "engine.io": "3.2.0",
+    "engine.io-client": "3.2.1",
     "humanize-number": "0.0.2",
     "istanbul": "0.4.5",
-    "nodemon": "1.11.0",
-    "tape": "4.6.3"
+    "nodemon": "1.17.3",
+    "tape": "4.9.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
