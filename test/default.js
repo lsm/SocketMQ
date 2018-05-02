@@ -280,7 +280,7 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     smqClient1.once('disconnect', function(stream) {
       t.equal(stream, clientStream1, 'clientStream1 disconnected')
     })
-    clientStream1.end()
+    smqClient1.close(clientStream1)
   })
 
   test(name + ': error', function(t) {
