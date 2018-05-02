@@ -1,7 +1,15 @@
 var test = require('tape')
 var socketmq = require('../index')
 
-module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, options) {
+module.exports = function(
+  name,
+  T,
+  smqServer,
+  smqClient1,
+  smqClient2,
+  endpoint,
+  options
+) {
   // 6 are in the tcp/tls/eio transport tests
   T.plan(25)
 
@@ -9,10 +17,8 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   var serverStream2
 
   function onServerConnect(stream) {
-    if (serverStream1)
-      serverStream2 = stream
-    else
-      serverStream1 = stream
+    if (serverStream1) serverStream2 = stream
+    else serverStream1 = stream
     T.pass('server connect event')
     T.ok(stream.readable, 'server stream is readable')
     T.ok(stream.writable, 'server stream is writable')
@@ -29,7 +35,10 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     T.ok(smqClient1.hasTag(endpoint), 'client1 has default tag')
     T.equal(smqClient1.tag(endpoint, 'tag by uri'), 1, 'tag by endpoint uri')
     T.equal(smqClient1.tag(endpoint, 'tag by uri'), 0, 'tag existing tag again')
-    T.ok(smqClient1.hasTag('tag by uri'), 'client1 has tag tagged by endpoint uri')
+    T.ok(
+      smqClient1.hasTag('tag by uri'),
+      'client1 has tag tagged by endpoint uri'
+    )
   }
 
   smqClient1.on('connect', onClient1Connect)
@@ -41,8 +50,15 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     T.ok(stream.readable, 'stream2 is readable')
     T.ok(stream.writable, 'stream2 is writable')
     T.ok(smqClient2.hasTag(endpoint), 'client2 has default tag')
-    T.equal(smqClient1.tag(endpoint + '123456', 'tag by non-existent uri'), false, 'tag by non-existent uri')
-    T.notOk(smqClient1.hasTag('tag by non-existent uri'), 'tag by non-existent uri')
+    T.equal(
+      smqClient1.tag(endpoint + '123456', 'tag by non-existent uri'),
+      false,
+      'tag by non-existent uri'
+    )
+    T.notOk(
+      smqClient1.hasTag('tag by non-existent uri'),
+      'tag by non-existent uri'
+    )
   })
 
   var msg1 = 'msg1'
@@ -150,7 +166,11 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     smqClient1.req('without callback', msg1)
 
     // Multiple arguments no callback
-    smqServer.rep('without callback multiple args', function(arg1, arg2, reply) {
+    smqServer.rep('without callback multiple args', function(
+      arg1,
+      arg2,
+      reply
+    ) {
       t.equal(arg1, msg1, 'without callback multiple args arg1 match')
       t.equal(arg2, msg2, 'without callback multiple args arg2 match')
       t.equal(reply, undefined, 'without callback multiple args no reply')
@@ -188,9 +208,16 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
   })
 
   test(name + ': tag clients', function(t) {
-    t.notEqual(serverStream1.remotePort, serverStream2.remotePort, 'get 2 clients')
+    t.notEqual(
+      serverStream1.remotePort,
+      serverStream2.remotePort,
+      'get 2 clients'
+    )
 
-    if (serverStream1.remotePort === clientStream1.localPort || !clientStream1.localPort) {
+    if (
+      serverStream1.remotePort === clientStream1.localPort ||
+      !clientStream1.localPort
+    ) {
       smqServer.tag(serverStream1, 'client1')
       smqServer.tag(serverStream2, 'client2')
     } else {
@@ -201,10 +228,22 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     t.ok(smqServer.hasTag('client1'), 'has tag "client1"')
     t.ok(smqServer.hasTag('client2'), 'has tag "client2"')
 
-    t.notOk(smqServer.tag(serverStream1, {}), 'tagging should fail if the tag is an object')
-    t.notOk(smqServer.tag(serverStream1, 1), 'tagging should fail if the tag is a number')
-    t.notOk(smqServer.tag(serverStream1, function() {}), 'tagging should fail if the tag is a number')
-    t.notOk(smqServer.tag(serverStream1, arguments), 'tagging should fail if the tag is not a array')
+    t.notOk(
+      smqServer.tag(serverStream1, {}),
+      'tagging should fail if the tag is an object'
+    )
+    t.notOk(
+      smqServer.tag(serverStream1, 1),
+      'tagging should fail if the tag is a number'
+    )
+    t.notOk(
+      smqServer.tag(serverStream1, function() {}),
+      'tagging should fail if the tag is a number'
+    )
+    t.notOk(
+      smqServer.tag(serverStream1, arguments),
+      'tagging should fail if the tag is not a array'
+    )
 
     t.end()
   })
@@ -221,10 +260,16 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     var i = 3
     while (i-- > 0) {
       // tag, topic/event, messages..., callback
-      smqServer.reqTag('client1', 'only for client1', 'hello client1', msg1, function(data, arg2) {
-        t.equal(data, 'data from client1', 'data from client1 match')
-        t.equal(arg2, msg2, 'arg2 match')
-      })
+      smqServer.reqTag(
+        'client1',
+        'only for client1',
+        'hello client1',
+        msg1,
+        function(data, arg2) {
+          t.equal(data, 'data from client1', 'data from client1 match')
+          t.equal(arg2, msg2, 'arg2 match')
+        }
+      )
     }
 
     smqClient2.sub('only for client2', function(msg, arg2) {
@@ -297,12 +342,20 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
     smqClient1.removeStream(clientStream1)
 
     smqClient2.once('error', function handle(event) {
-      t.equal(event.type, smqClient2.ERR_NO_TAGGED_STREAM, 'client emit no stream for tag error')
+      t.equal(
+        event.type,
+        smqClient2.ERR_NO_TAGGED_STREAM,
+        'client emit no stream for tag error'
+      )
     })
     smqClient2.reqTag('no such tag', 'event', 'message', function() {})
 
     smqServer.on('error', function(event) {
-      t.equal(event.type, smqClient2.ERR_NO_TAGGED_STREAM, 'server emit no stream for tag error')
+      t.equal(
+        event.type,
+        smqClient2.ERR_NO_TAGGED_STREAM,
+        'server emit no stream for tag error'
+      )
     })
     smqServer.pubTag('no such tag', 'event', 'message')
   })
@@ -359,7 +412,11 @@ module.exports = function(name, T, smqServer, smqClient1, smqClient2, endpoint, 
 
     // This will be called twice
     serverChatChannel.sub('to lobby', function(channel, msg) {
-      t.equal(['lobby', 'private'].indexOf(channel) > -1, true, 'chat to lobby channel ' + channel)
+      t.equal(
+        ['lobby', 'private'].indexOf(channel) > -1,
+        true,
+        'chat to lobby channel ' + channel
+      )
       t.equal(msg, msgLobby, 'to lobby message')
     })
 

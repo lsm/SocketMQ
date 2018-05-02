@@ -17,7 +17,7 @@ module.exports = function() {
     t.plan(3)
 
     // Endpoints
-    var eioEndpoint = 'eio://127.0.0.1:8081'
+    var eioEndpoint = 'eio://127.0.0.1:7073'
     var tcpEndpoint = 'tcp://127.0.0.1:6364'
     var tlsEndpoint = 'tls://localhost:46364'
 
@@ -30,13 +30,17 @@ module.exports = function() {
       tcpStream = stream
       t.ok(stream, 'tcp stream')
     })
-    smqHub.bind(tlsEndpoint, {
-      key: fs.readFileSync(certPath + '/server-key.pem'),
-      cert: fs.readFileSync(certPath + '/server-cert.pem'),
-      ca: [fs.readFileSync(certPath + '/client-cert.pem')]
-    }, function(stream) {
-      t.ok(stream, 'tls stream')
-    })
+    smqHub.bind(
+      tlsEndpoint,
+      {
+        key: fs.readFileSync(certPath + '/server-key.pem'),
+        cert: fs.readFileSync(certPath + '/server-cert.pem'),
+        ca: [fs.readFileSync(certPath + '/client-cert.pem')]
+      },
+      function(stream) {
+        t.ok(stream, 'tls stream')
+      }
+    )
 
     // Clients
     var tlsClientOptions = {
@@ -63,12 +67,18 @@ module.exports = function() {
 
     eioClient.sub('eio sub', function(arg1) {
       t.equal(arg1, msg, 'eio get pub from tls')
-      t.ok(eioClient.hasTag('SUB::eio sub', eioStream), 'eio stream has SUB tag')
+      t.ok(
+        eioClient.hasTag('SUB::eio sub', eioStream),
+        'eio stream has SUB tag'
+      )
     })
 
     tcpClient.sub('tcp sub', function(arg1) {
       t.equal(arg1, msg, 'tcp get pub from tls')
-      t.ok(tcpClient.hasTag('SUB::tcp sub', tcpStream), 'tcp stream has SUB tag')
+      t.ok(
+        tcpClient.hasTag('SUB::tcp sub', tcpStream),
+        'tcp stream has SUB tag'
+      )
     })
 
     tlsClient.sub('eio sub', function() {
@@ -112,7 +122,11 @@ module.exports = function() {
       t.equal(reply, undefined, 'without callback no reply')
     })
 
-    eioClient.rep('without callback multiple args', function(arg1, arg2, reply) {
+    eioClient.rep('without callback multiple args', function(
+      arg1,
+      arg2,
+      reply
+    ) {
       t.equal(arg1, msgNoCB, 'without callback multiple args arg1 match')
       t.equal(arg2, reMsg, 'without callback multiple args arg2 match')
       t.equal(reply, undefined, 'without callback multiple args no reply')

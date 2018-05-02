@@ -20,7 +20,7 @@ module.exports = function() {
   var tcpStream
 
   // Endpoints
-  var eioEndpoint = 'eio://127.0.0.1:8082'
+  var eioEndpoint = 'eio://127.0.0.1:7072'
   var tcpEndpoint = 'tcp://127.0.0.1:6365'
   var tlsEndpoint = 'tls://localhost:46365'
 
@@ -33,17 +33,20 @@ module.exports = function() {
       t.ok(stream, 'eio stream')
     })
     smqGateway.bind(tcpEndpoint, function(stream) {
-      if (!tcpStream)
-        t.ok(stream, 'tcp stream')
+      if (!tcpStream) t.ok(stream, 'tcp stream')
       tcpStream = stream
     })
-    smqGateway.bind(tlsEndpoint, {
-      key: fs.readFileSync(certPath + '/server-key.pem'),
-      cert: fs.readFileSync(certPath + '/server-cert.pem'),
-      ca: [fs.readFileSync(certPath + '/client-cert.pem')]
-    }, function(stream) {
-      t.ok(stream, 'tls stream')
-    })
+    smqGateway.bind(
+      tlsEndpoint,
+      {
+        key: fs.readFileSync(certPath + '/server-key.pem'),
+        cert: fs.readFileSync(certPath + '/server-cert.pem'),
+        ca: [fs.readFileSync(certPath + '/client-cert.pem')]
+      },
+      function(stream) {
+        t.ok(stream, 'tls stream')
+      }
+    )
 
     // Clients
     var tlsClientOptions = {
@@ -87,7 +90,11 @@ module.exports = function() {
         // Tell gateway what message we allow
         var msg = {
           SUB: ['eio sub'],
-          REP: ['chat message', 'without callback', 'without callback multiple args']
+          REP: [
+            'chat message',
+            'without callback',
+            'without callback multiple args'
+          ]
         }
         tcpClient.queue.one([stream], {
           type: type.INF,
@@ -149,8 +156,14 @@ module.exports = function() {
       t.equal(chn, 'my room', 'tcp channel')
       t.equal(msg, eioReqMsg, 'eio req msg')
       t.ok(smqGateway.hasTag('SID::' + eioStream.id, eioStream), 'has SID tag')
-      t.ok(smqGateway.hasTag('/chat::my room::REQ::chat message', eioStream), 'has REQ tag')
-      t.ok(smqGateway.hasTag('/chat::my room::SUB::eio sub', eioStream), 'has SUB tag')
+      t.ok(
+        smqGateway.hasTag('/chat::my room::REQ::chat message', eioStream),
+        'has REQ tag'
+      )
+      t.ok(
+        smqGateway.hasTag('/chat::my room::SUB::eio sub', eioStream),
+        'has SUB tag'
+      )
       reply(tcpRepMsg)
     })
 
@@ -166,7 +179,12 @@ module.exports = function() {
       t.equal(arg1, nocb1, 'without callback arg1 match')
       t.equal(reply, undefined, 'without callback no reply')
     })
-    tcpClient.rep('without callback multiple args', function(chn, arg1, arg2, reply) {
+    tcpClient.rep('without callback multiple args', function(
+      chn,
+      arg1,
+      arg2,
+      reply
+    ) {
       t.equal(chn, 'my room', 'without callback multiple args chn match')
       t.equal(arg1, nocb1, 'without callback multiple args arg1 match')
       t.equal(arg2, nocb2, 'without callback multiple args arg2 match')
@@ -177,7 +195,10 @@ module.exports = function() {
 
     eioClient.req('chat message', eioReqMsg, function(msg) {
       t.equal(msg, tcpRepMsg, 'tcp rep msg')
-      t.ok(smqGateway.hasTag('/chat::REP::chat message', tcpStream), 'has REP tag')
+      t.ok(
+        smqGateway.hasTag('/chat::REP::chat message', tcpStream),
+        'has REP tag'
+      )
       t.ok(smqGateway.hasTag('/chat::ACK', tcpStream), 'has ACK tag')
     })
     eioClient.req('chat message 2', eioReqMsg, function() {
@@ -196,12 +217,20 @@ module.exports = function() {
       t.equal(reason, type.EXITED, 'leave reason')
     })
 
-    t.throws(function() {
-      eioClient.join()
-    }, /`join` requires channel name/, 'exception: channel name is required')
-    t.throws(function() {
-      eioClient.join('new room')
-    }, /Already in channel "my room", leave it first/, 'exception: already joined')
+    t.throws(
+      function() {
+        eioClient.join()
+      },
+      /`join` requires channel name/,
+      'exception: channel name is required'
+    )
+    t.throws(
+      function() {
+        eioClient.join('new room')
+      },
+      /Already in channel "my room", leave it first/,
+      'exception: already joined'
+    )
 
     tcpClient.left(function(pack, stream) {
       t.equal(stream, tcpClient.streams[0], 'left stream')
@@ -228,7 +257,6 @@ module.exports = function() {
       t.equal(ns, '/chat', 'SRVERR leave namepace')
       t.equal(chn, 'my room', 'SRVERR leave channel')
       t.equal(reason, type.SRVERR, 'SRVERR leave reason')
-
 
       eioClient.on('join', function(reason, ns, chn) {
         t.equal(reason, type.JOINED, 'reconnect join reason')
