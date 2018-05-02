@@ -17,11 +17,9 @@
             2,
             "never"
         ],
-        "yoda": [2, "always", { "onlyEquality": true }],
         "curly": [
             2,
-            "multi-or-nest",
-            "consistent"
+            "all"
         ]
     },
     "env": {
@@ -29,12 +27,5 @@
         "node": true,
         "browser": true
     },
-    "extends": "eslint:recommended",
-    "ecmaFeatures": {
-        "jsx": true,
-        "experimentalObjectRestSpread": true
-    },
-    "plugins": [
-        "react"
-    ]
+    "extends": "eslint:recommended"
 }

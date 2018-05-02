@@ -11,12 +11,14 @@
     "inherits": "2.0.3"
   },
   "devDependencies": {
-    "coveralls": "3.0.0",
+    "coveralls": "3.0.1",
     "engine.io": "3.2.0",
     "engine.io-client": "3.2.1",
+    "eslint": "4.19.1",
     "humanize-number": "0.0.2",
     "istanbul": "0.4.5",
     "nodemon": "1.17.3",
+    "prettier": "1.12.1",
     "tape": "4.9.0"
   },
   "scripts": {
