@@ -325,7 +325,7 @@ module.exports = function(
     smqClient1.once('disconnect', function(stream) {
       t.equal(stream, clientStream1, 'clientStream1 disconnected')
     })
-    smqClient1.close(clientStream1)
+    smqClient1.removeStream(clientStream1)
   })
 
   test(name + ': error', function(t) {
@@ -480,7 +480,7 @@ module.exports = function(
       t.equal('room', channel, 'channel name is correct')
       t.equal('some message', msg, 'message is correct')
       setTimeout(function() {
-        smqClient1.close(smqClient1.streams[0])
+        smqClient1.removeStream(smqClient1.streams[0])
       }, 100)
     })
 

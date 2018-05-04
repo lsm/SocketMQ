@@ -250,7 +250,7 @@ module.exports = function() {
       t.equal(reason, type.JOINED, 're-join reason')
       t.equal(ns, '/chat', 're-join ns')
       t.equal(chn, 'my room', 're-join chn')
-      tcpClient.close(tcpStream)
+      tcpClient.removeStream(tcpStream)
     })
 
     eioClient.once('leave', function(reason, ns, chn) {
@@ -262,7 +262,7 @@ module.exports = function() {
         t.equal(reason, type.JOINED, 'reconnect join reason')
         t.equal(ns, '/chat', 'reconnect join ns')
         t.equal(chn, 'my room', 'reconnect join chn')
-        eioClient.close(eioClient.streams[0])
+        eioClient.removeStream(eioClient.streams[0])
       })
 
       eioClient.once('leave', function(reason, ns, chn) {
